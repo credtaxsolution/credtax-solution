@@ -54,7 +54,7 @@ export default function SuccessionPage() {
                 Selling outright to a consolidator or larger firm often means client churn, cultural disruption, and walking away from a client base you spent decades nurturing.
               </p>
             </div>
-            <div style={{ background: 'var(--navy-900)', color: '#fff', borderRadius: 'var(--radius)', padding: '32px' }}>
+            <div className="dark" style={{ background: 'var(--navy-900)', color: '#fff', borderRadius: 'var(--radius)', padding: '32px' }}>
               <span className="pill" style={{ color: 'var(--accent-bright)', borderColor: 'var(--accent-bright)' }}>The CredTax Continuity Model</span>
               <h3 style={{ marginTop: '12px', color: '#fff' }}>Operating Partnership</h3>
               <p style={{ marginTop: '8px', color: 'var(--on-dark-muted)' }}>

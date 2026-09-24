@@ -93,7 +93,7 @@ export default function WhyCredTaxPage() {
                 <li>Zero accumulated process knowledge</li>
               </ul>
             </div>
-            <div style={{ background: 'var(--navy-900)', color: '#fff', borderRadius: 'var(--radius)', padding: '28px' }}>
+            <div className="dark" style={{ background: 'var(--navy-900)', color: '#fff', borderRadius: 'var(--radius)', padding: '28px' }}>
               <span className="pill" style={{ color: 'var(--accent-bright)', borderColor: 'var(--accent-bright)' }}>The CredTax Engagement</span>
               <h3 style={{ color: '#fff', marginTop: '12px' }}>Operating Extension</h3>
               <ul className="ticks" style={{ marginTop: '12px' }}>
