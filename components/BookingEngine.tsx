@@ -1,0 +1,921 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  isBefore,
+  startOfToday,
+  isWeekend,
+} from 'date-fns';
+
+const TIMEZONES = [
+  { value: 'America/New_York', label: 'Eastern Time (EDT/EST)' },
+  { value: 'America/Chicago', label: 'Central Time (CDT/CST)' },
+  { value: 'America/Denver', label: 'Mountain Time (MDT/MST)' },
+  { value: 'America/Los_Angeles', label: 'Pacific Daylight Time (PDT/PST)' },
+  { value: 'America/Toronto', label: 'Eastern Canada (Toronto)' },
+  { value: 'Asia/Kolkata', label: 'India Standard Time (IST)' },
+  { value: 'UTC', label: 'Coordinated Universal Time (UTC)' },
+];
+
+const SERVICES = [
+  {
+    id: 'tax',
+    title: 'US Tax Services',
+    description: 'Individual (1040) and Business (1065, 1120, 1120-S) preparation support with workpapers and review notes.',
+  },
+  {
+    id: 'review',
+    title: 'Tax Review & QC',
+    description: 'Senior-level quality control, review notes, missing-information identification and accuracy checks before CPA sign-off.',
+  },
+  {
+    id: 'accounting',
+    title: 'Bookkeeping & Accounting',
+    description: 'Month-end close, account reconciliations, general ledger cleanup, and financial reporting inside QuickBooks or Xero.',
+  },
+  {
+    id: 'workflow',
+    title: 'CPA Firm Workflow Support',
+    description: 'TaxDome coordination, client document chasing, inbox support, and pipeline scheduling.',
+  },
+  {
+    id: 'pod',
+    title: 'CredTax Pod (Full Function)',
+    description: 'A dedicated multi-disciplinary team (Preparer, Senior Reviewer, Coordinator) built around your firm’s workflow.',
+  },
+  {
+    id: 'succession',
+    title: 'Succession & Continuity Consultation',
+    description: 'Long-term operating partnership discussion for CPA firm owners looking to reduce day-to-day production.',
+  },
+];
+
+const TIME_SLOTS = [
+  '10:00 am', '10:30 am', '11:00 am', '11:30 am',
+  '12:00 pm', '12:30 pm', '1:00 pm', '1:30 pm',
+  '2:00 pm', '2:30 pm', '3:00 pm', '3:30 pm',
+  '4:00 pm', '4:30 pm', '5:00 pm'
+];
+
+const COUNTRY_CODES = [
+  { code: '+1', country: 'US / CA' },
+  { code: '+91', country: 'IN' },
+  { code: '+44', country: 'UK' },
+  { code: '+61', country: 'AU' },
+  { code: '+64', country: 'NZ' },
+];
+
+export function BookingEngine() {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const today = startOfToday();
+
+  // Step 1 State
+  const [currentMonth, setCurrentMonth] = useState(today);
+  const [selectedDate, setSelectedDate] = useState<Date>(today);
+  const [selectedSlot, setSelectedSlot] = useState<string>('10:00 am');
+  const [selectedService, setSelectedService] = useState<string>('US Tax Services');
+  const [selectedTimezone, setSelectedTimezone] = useState<string>('America/Los_Angeles');
+  const [showServiceDetails, setShowServiceDetails] = useState(false);
+
+  // Step 2 State (Form)
+  const [clientName, setClientName] = useState('');
+  const [firmName, setFirmName] = useState('');
+  const [email, setEmail] = useState('');
+  const [countryCode, setCountryCode] = useState('+1');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [servicesInterested, setServicesInterested] = useState<string[]>(['US Tax Preparation']);
+  const [workload, setWorkload] = useState('20-50 returns / mo');
+  const [message, setMessage] = useState('');
+
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Auto-detect client timezone if supported
+  useEffect(() => {
+    try {
+      const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const found = TIMEZONES.find((t) => t.value === userTz);
+      if (found) {
+        setSelectedTimezone(found.value);
+      }
+    } catch {
+      // Fallback to Los Angeles
+    }
+  }, []);
+
+  // Calendar dates generation
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(monthStart);
+  const startDate = startOfWeek(monthStart);
+  const endDate = endOfWeek(monthEnd);
+  const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+  const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+
+  const toggleServiceInterested = (name: string) => {
+    setServicesInterested((prev) =>
+      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+    );
+  };
+
+  const handleBookNow = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
+
+    try {
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_name: clientName,
+          firm_name: firmName,
+          email,
+          phone: `${countryCode} ${phoneNumber}`.trim(),
+          service_type: selectedService,
+          services_interested: servicesInterested,
+          workload,
+          message,
+          appointment_date: formattedDate,
+          start_time: selectedSlot,
+          end_time: selectedSlot,
+          timezone: selectedTimezone,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to confirm booking.');
+      }
+
+      setStep(3); // Success step
+    } catch (err: unknown) {
+      console.error('Booking failed:', err);
+      setErrorMessage((err as Error).message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate .ics calendar invite
+  const downloadIcsFile = () => {
+    const dateStr = format(selectedDate, 'yyyyMMdd');
+    const icsData = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//CredTax Solution LLP//Appointment//EN',
+      'BEGIN:VEVENT',
+      `SUMMARY:CredTax Discovery Session: ${selectedService}`,
+      `DESCRIPTION:Initial Consultation with CredTax Solution LLP.\\nService: ${selectedService}\\nClient: ${clientName}\\nFirm: ${firmName || 'N/A'}`,
+      `DTSTART:${dateStr}T100000Z`,
+      `DTEND:${dateStr}T103000Z`,
+      'LOCATION:Online Meeting (Link to follow by email)',
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', `CredTax-Appointment-${dateStr}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const currentServiceObj = SERVICES.find((s) => s.title === selectedService) || SERVICES[0];
+
+  return (
+    <div style={{ maxWidth: '1180px', marginInline: 'auto' }}>
+      {/* ========================================================
+          STEP 1: SELECT DATE, TIME & SERVICE
+          ======================================================== */}
+      {step === 1 && (
+        <div>
+          <div style={{ marginBottom: '32px' }}>
+            <h1 style={{ fontSize: 'clamp(2rem, 1.3rem + 2.5vw, 3.2rem)', marginBottom: '8px' }}>
+              Schedule your service
+            </h1>
+            <p className="muted" style={{ fontSize: '1.15rem', margin: 0 }}>
+              Check out our availability and book the date and time that works for you
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)',
+              gap: 'clamp(24px, 4vw, 56px)',
+              alignItems: 'start',
+            }}
+          >
+            {/* Left Area: Date & Time Picker */}
+            <div
+              style={{
+                background: '#fff',
+                border: '1px solid var(--line)',
+                borderRadius: '8px',
+                padding: 'clamp(20px, 3vw, 36px)',
+                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  marginBottom: '24px',
+                  borderBottom: '1px solid var(--line)',
+                  paddingBottom: '16px',
+                }}
+              >
+                <h2 style={{ fontSize: '1.35rem', margin: 0 }}>Select a Date and Time</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <label htmlFor="tzSelect" style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
+                    Time zone:
+                  </label>
+                  <select
+                    id="tzSelect"
+                    value={selectedTimezone}
+                    onChange={(e) => setSelectedTimezone(e.target.value)}
+                    style={{
+                      fontSize: '0.88rem',
+                      fontWeight: 500,
+                      padding: '4px 8px',
+                      border: '1px solid var(--line)',
+                      borderRadius: '4px',
+                      background: '#fff',
+                      color: 'var(--navy-900)',
+                    }}
+                  >
+                    {TIMEZONES.map((tz) => (
+                      <option key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Sub-grid: Month Calendar & Availability Slots */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: 'clamp(24px, 3vw, 40px)',
+                }}
+              >
+                {/* 1. Month Calendar */}
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={handlePrevMonth}
+                      aria-label="Previous month"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 8px',
+                        fontSize: '1.2rem',
+                        color: 'var(--navy-900)',
+                      }}
+                    >
+                      &lsaquo;
+                    </button>
+                    <span style={{ fontWeight: 650, fontSize: '1.05rem', color: 'var(--navy-900)' }}>
+                      {format(currentMonth, 'MMMM yyyy')}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleNextMonth}
+                      aria-label="Next month"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 8px',
+                        fontSize: '1.2rem',
+                        color: 'var(--navy-900)',
+                      }}
+                    >
+                      &rsaquo;
+                    </button>
+                  </div>
+
+                  {/* Day of Week Headers */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(7, 1fr)',
+                      textAlign: 'center',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: 'var(--muted)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                      <div key={d} style={{ padding: '4px 0' }}>
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Days */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(7, 1fr)',
+                      gap: '4px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {calendarDays.map((day) => {
+                      const isSelected = isSameDay(day, selectedDate);
+                      const isCurrentMonth = isSameMonth(day, currentMonth);
+                      const isPast = isBefore(day, today);
+                      const isDayWeekend = isWeekend(day);
+                      const isDisabled = isPast || isDayWeekend;
+
+                      return (
+                        <button
+                          key={day.toISOString()}
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() => setSelectedDate(day)}
+                          style={{
+                            aspectRatio: '1',
+                            display: 'grid',
+                            placeItems: 'center',
+                            borderRadius: '50%',
+                            border: 'none',
+                            fontSize: '0.92rem',
+                            fontWeight: isSelected ? 700 : 500,
+                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                            color: isSelected
+                              ? '#fff'
+                              : isDisabled
+                              ? '#D8E2E4'
+                              : isCurrentMonth
+                              ? 'var(--ink)'
+                              : '#BACDD1',
+                            background: isSelected
+                              ? '#2F616F'
+                              : 'transparent',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {format(day, 'd')}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. Availability Time Slots */}
+                <div>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 650, marginBottom: '14px', color: 'var(--navy-900)' }}>
+                    Availability for {format(selectedDate, 'EEEE, MMMM d')}
+                  </h3>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: '10px',
+                      maxHeight: '360px',
+                      overflowY: 'auto',
+                      paddingRight: '4px',
+                    }}
+                  >
+                    {TIME_SLOTS.map((slot) => {
+                      const isSlotActive = slot === selectedSlot;
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setSelectedSlot(slot)}
+                          style={{
+                            padding: '10px 14px',
+                            borderRadius: '99px',
+                            border: `1.5px solid ${isSlotActive ? '#2F616F' : 'var(--line)'}`,
+                            background: isSlotActive ? '#2F616F' : '#fff',
+                            color: isSlotActive ? '#fff' : 'var(--navy-900)',
+                            fontSize: '0.88rem',
+                            fontWeight: isSlotActive ? 700 : 600,
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {slot}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Area: Service Details Card */}
+            <div
+              style={{
+                background: '#fff',
+                border: '1px solid var(--line)',
+                borderRadius: '8px',
+                padding: 'clamp(20px, 3vw, 32px)',
+                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
+              }}
+            >
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: 'var(--navy-900)' }}>
+                Service Details
+              </h3>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label htmlFor="serviceSelect" style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '6px' }}>
+                  Select Consultation Type:
+                </label>
+                <select
+                  id="serviceSelect"
+                  value={selectedService}
+                  onChange={(e) => setSelectedService(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1.5px solid #B8CACC',
+                    fontSize: '0.98rem',
+                    fontWeight: 600,
+                    color: 'var(--navy-900)',
+                    background: '#fff',
+                  }}
+                >
+                  {SERVICES.map((s) => (
+                    <option key={s.id} value={s.title}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Collapsible Details */}
+              <div style={{ marginBottom: '24px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowServiceDetails(!showServiceDetails)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: 'var(--accent)',
+                    fontSize: '0.88rem',
+                    fontWeight: 650,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span>{showServiceDetails ? 'Hide details' : 'More details'}</span>
+                  <span>{showServiceDetails ? '▴' : '▾'}</span>
+                </button>
+                {showServiceDetails && (
+                  <p style={{ marginTop: '8px', fontSize: '0.92rem', color: 'var(--muted)', lineHeight: '1.5' }}>
+                    {currentServiceObj.description}
+                  </p>
+                )}
+              </div>
+
+              <div
+                style={{
+                  borderTop: '1px solid var(--line)',
+                  paddingTop: '18px',
+                  marginBottom: '24px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.9rem' }}>
+                  <span className="muted">Duration:</span>
+                  <span style={{ fontWeight: 600 }}>30 minutes</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                  <span className="muted">Pricing:</span>
+                  <span style={{ fontWeight: 700, color: 'var(--navy-900)' }}>Free (Introductory)</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setStep(2)}
+                style={{
+                  width: '100%',
+                  borderRadius: '99px',
+                  background: '#183941',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  padding: '12px',
+                }}
+              >
+                Next &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          STEP 2: BOOKING FORM (CLIENT DETAILS)
+          ======================================================== */}
+      {step === 2 && (
+        <div>
+          <div style={{ marginBottom: '32px' }}>
+            <h1 style={{ fontSize: 'clamp(2rem, 1.3rem + 2.5vw, 3.2rem)', marginBottom: '8px' }}>
+              Booking Form
+            </h1>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)',
+              gap: 'clamp(24px, 4vw, 56px)',
+              alignItems: 'start',
+            }}
+          >
+            {/* Left: Client Form */}
+            <div
+              style={{
+                background: '#fff',
+                border: '1px solid var(--line)',
+                borderRadius: '8px',
+                padding: 'clamp(20px, 3vw, 36px)',
+                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
+              }}
+            >
+              <h2 style={{ fontSize: '1.35rem', marginBottom: '16px' }}>Client Details</h2>
+
+              <div
+                style={{
+                  background: 'var(--mist)',
+                  padding: '12px 16px',
+                  borderRadius: '6px',
+                  fontSize: '0.92rem',
+                  marginBottom: '24px',
+                  color: 'var(--muted)',
+                }}
+              >
+                <span>Have an account? </span>
+                <Link href="/admin/login" className="link" style={{ fontWeight: 650 }}>
+                  Log in
+                </Link>
+              </div>
+
+              {errorMessage && (
+                <div
+                  style={{
+                    padding: '12px',
+                    background: '#FDF2F2',
+                    border: '1px solid #F8B4B4',
+                    borderRadius: '4px',
+                    color: '#9B1C1C',
+                    marginBottom: '20px',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  {errorMessage}
+                </div>
+              )}
+
+              <form onSubmit={handleBookNow}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+                  <div className="field">
+                    <label htmlFor="b-name">
+                      Full name <span className="req">*</span>
+                    </label>
+                    <input
+                      id="b-name"
+                      type="text"
+                      required
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      placeholder="e.g. John Miller"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="b-firm">Firm name</label>
+                    <input
+                      id="b-firm"
+                      type="text"
+                      value={firmName}
+                      onChange={(e) => setFirmName(e.target.value)}
+                      placeholder="e.g. Miller &amp; Associates CPAs"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+                  <div className="field">
+                    <label htmlFor="b-email">
+                      Email <span className="req">*</span>
+                    </label>
+                    <input
+                      id="b-email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@firmcpa.com"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="b-phone">Phone</label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select
+                        aria-label="Country code"
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        style={{
+                          width: '100px',
+                          padding: '0.75em 0.5em',
+                          border: '1.5px solid #B8CACC',
+                          borderRadius: '4px',
+                          background: '#fff',
+                          fontSize: '0.95rem',
+                        }}
+                      >
+                        {COUNTRY_CODES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.country} ({c.code})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        id="b-phone"
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="555-0199"
+                        style={{ flex: 1 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Services Interested In (Checkboxes) */}
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontWeight: 650, fontSize: '0.93rem', color: 'var(--navy-900)', marginBottom: '12px' }}>
+                    Services Interested In
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                    {[
+                      'US Tax Preparation',
+                      'Tax Review & QC',
+                      'Bookkeeping',
+                      'Virtual Assistance',
+                      'CredTax Pod',
+                      'Succession Partnership',
+                    ].map((svc) => (
+                      <label
+                        key={svc}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.95rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={servicesInterested.includes(svc)}
+                          onChange={() => toggleServiceInterested(svc)}
+                          style={{ width: '18px', height: '18px', accentColor: 'var(--navy-900)' }}
+                        />
+                        <span>{svc}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Approximate Workload */}
+                <div className="field" style={{ marginBottom: '24px' }}>
+                  <label htmlFor="b-workload">Approximate Workload</label>
+                  <select
+                    id="b-workload"
+                    value={workload}
+                    onChange={(e) => setWorkload(e.target.value)}
+                  >
+                    <option value="< 20 returns / mo">&lt; 20 returns / month</option>
+                    <option value="20-50 returns / mo">20-50 returns / month</option>
+                    <option value="50-100+ returns / mo">50-100+ returns / month</option>
+                    <option value="Recurring Monthly Bookkeeping">Recurring Monthly Bookkeeping</option>
+                    <option value="Cleanup Project">One-time Cleanup Project</option>
+                    <option value="Custom Scope">Custom Scope / Unsure yet</option>
+                  </select>
+                </div>
+
+                {/* Add your message */}
+                <div className="field" style={{ marginBottom: '28px' }}>
+                  <label htmlFor="b-msg">Add your message</label>
+                  <textarea
+                    id="b-msg"
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Tell us any specific software you use or questions you have..."
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setStep(1)}
+                  >
+                    &larr; Back
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={loading}
+                    style={{
+                      flex: 1,
+                      background: '#183941',
+                      borderRadius: '99px',
+                      color: '#fff',
+                    }}
+                  >
+                    {loading ? 'Confirming...' : 'Book Now'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Right: Booking Summary Sidebar */}
+            <div
+              style={{
+                background: '#fff',
+                border: '1px solid var(--line)',
+                borderRadius: '8px',
+                padding: 'clamp(20px, 3vw, 32px)',
+                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
+              }}
+            >
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '16px', color: 'var(--navy-900)' }}>
+                Booking Details
+              </h3>
+
+              <div style={{ marginBottom: '16px' }}>
+                <strong style={{ display: 'block', fontSize: '1.05rem', color: 'var(--navy-900)' }}>
+                  {selectedService}
+                </strong>
+                <span style={{ display: 'block', color: 'var(--muted)', fontSize: '0.95rem', marginTop: '4px' }}>
+                  {format(selectedDate, 'MMMM d, yyyy')} at {selectedSlot} ({selectedTimezone.split('/')[1] || 'UTC'})
+                </span>
+              </div>
+
+              <div
+                style={{
+                  borderTop: '1px solid var(--line)',
+                  paddingTop: '16px',
+                  marginBottom: '16px',
+                }}
+              >
+                <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '4px' }}>
+                  Payment Details
+                </span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--navy-900)' }}>Free</span>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: 'var(--muted)', lineHeight: '1.5', marginBottom: '24px' }}>
+                By completing your booking, you agree to receive related meeting notifications and updates.
+              </p>
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={loading || !clientName || !email}
+                onClick={handleBookNow}
+                style={{
+                  width: '100%',
+                  borderRadius: '99px',
+                  background: '#183941',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  padding: '12px',
+                }}
+              >
+                {loading ? 'Confirming...' : 'Book Now'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          STEP 3: CONFIRMATION / SUCCESS SCREEN
+          ======================================================== */}
+      {step === 3 && (
+        <div
+          style={{
+            maxWidth: '680px',
+            margin: '40px auto',
+            background: '#fff',
+            border: '1.5px solid var(--gold)',
+            borderRadius: '12px',
+            padding: 'clamp(28px, 5vw, 56px)',
+            textAlign: 'center',
+            boxShadow: '0 12px 36px -12px rgba(47, 97, 111, 0.15)',
+          }}
+        >
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'rgba(47, 97, 111, 0.15)',
+              color: 'var(--accent)',
+              display: 'grid',
+              placeItems: 'center',
+              margin: '0 auto 20px',
+              fontSize: '2rem',
+            }}
+          >
+            ✓
+          </div>
+
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: '2.2rem', color: 'var(--navy-900)', marginBottom: '12px' }}>
+            Your Session Is Scheduled!
+          </h2>
+          <p className="muted" style={{ fontSize: '1.1rem', marginBottom: '28px' }}>
+            We have reserved your appointment and sent confirmation details to <strong>{email}</strong>.
+          </p>
+
+          <div
+            style={{
+              background: 'var(--mist)',
+              padding: '20px',
+              borderRadius: '8px',
+              textAlign: 'left',
+              marginBottom: '32px',
+            }}
+          >
+            <div style={{ marginBottom: '8px' }}>
+              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Service:</span>
+              <strong>{selectedService}</strong>
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Date &amp; Time:</span>
+              <strong>{format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedSlot}</strong>
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Timezone:</span>
+              <span>{selectedTimezone}</span>
+            </div>
+            <div>
+              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Attendee:</span>
+              <span>{clientName} {firmName ? `(${firmName})` : ''}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={downloadIcsFile}
+            >
+              📅 Download Calendar Invite (.ics)
+            </button>
+            <Link className="btn btn-primary" href="/">
+              Return to Home
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
