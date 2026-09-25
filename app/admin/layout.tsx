@@ -15,6 +15,7 @@ import {
   LogOut,
   ExternalLink,
   Menu,
+  CalendarCheck,
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -72,6 +73,7 @@ export default function AdminLayout({
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/appointments', label: 'Appointments', icon: Calendar },
+    { href: '/admin/availability', label: 'Availability Calendar', icon: CalendarCheck },
     { href: '/admin/submissions', label: 'Form Inquiries', icon: Inbox },
     { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
     { href: '/admin/blogs', label: 'Blogs & Insights', icon: FileText },

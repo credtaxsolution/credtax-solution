@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   format,
@@ -17,6 +17,13 @@ import {
   startOfToday,
   isWeekend,
 } from 'date-fns';
+import {
+  AvailabilitySettings,
+  DEFAULT_AVAILABILITY,
+  DEFAULT_SLOTS,
+  getAvailableSlotsForDate,
+  normalizeTimeString,
+} from '@/lib/availability';
 
 const TIMEZONES = [
   { value: 'America/New_York', label: 'Eastern Time (EDT/EST)' },
@@ -100,6 +107,63 @@ export function BookingEngine() {
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Live Availability & Booked Slots State
+  const [availabilitySettings, setAvailabilitySettings] = useState<AvailabilitySettings>(DEFAULT_AVAILABILITY);
+  const [bookedAppointments, setBookedAppointments] = useState<Array<{ appointment_date: string; start_time: string }>>([]);
+
+  // Fetch live availability rules and booked appointments from database
+  const refreshAvailability = async () => {
+    try {
+      const [availRes, aptRes] = await Promise.all([
+        fetch('/api/availability'),
+        fetch('/api/appointments'),
+      ]);
+
+      if (availRes.ok) {
+        const availData = await availRes.json();
+        if (availData.settings) {
+          setAvailabilitySettings(availData.settings);
+        }
+      }
+
+      if (aptRes.ok) {
+        const aptData = await aptRes.json();
+        if (aptData.bookedSlots) {
+          setBookedAppointments(aptData.bookedSlots);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching live availability:', err);
+    }
+  };
+
+  useEffect(() => {
+    refreshAvailability();
+  }, []);
+
+  // Selected date slot calculations
+  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  const bookedOnSelectedDate = useMemo(() => {
+    return bookedAppointments
+      .filter((b) => b.appointment_date === selectedDateStr)
+      .map((b) => b.start_time);
+  }, [bookedAppointments, selectedDateStr]);
+
+  const currentDaySlots = useMemo(() => {
+    return getAvailableSlotsForDate(selectedDateStr, availabilitySettings, bookedOnSelectedDate);
+  }, [selectedDateStr, availabilitySettings, bookedOnSelectedDate]);
+
+  // Ensure an available slot is selected when date or schedule changes
+  useEffect(() => {
+    if (currentDaySlots.slots.length > 0) {
+      if (!currentDaySlots.slots.includes(selectedSlot)) {
+        setSelectedSlot(currentDaySlots.slots[0]);
+      }
+    } else {
+      setSelectedSlot('');
+    }
+  }, [currentDaySlots, selectedSlot]);
 
   // Auto-detect client timezone if supported
   useEffect(() => {
@@ -355,11 +419,23 @@ export function BookingEngine() {
                     }}
                   >
                     {calendarDays.map((day) => {
+                      const dStr = format(day, 'yyyy-MM-dd');
                       const isSelected = isSameDay(day, selectedDate);
                       const isCurrentMonth = isSameMonth(day, currentMonth);
                       const isPast = isBefore(day, today);
-                      const isDayWeekend = isWeekend(day);
-                      const isDisabled = isPast || isDayWeekend;
+
+                      const bookedSlotsOnDay = bookedAppointments
+                        .filter((b) => b.appointment_date === dStr)
+                        .map((b) => b.start_time);
+
+                      const daySlotInfo = getAvailableSlotsForDate(
+                        dStr,
+                        availabilitySettings,
+                        bookedSlotsOnDay
+                      );
+
+                      const isDisabled = isPast || !daySlotInfo.isDateAvailable;
+                      const isBlockedDay = daySlotInfo.status === 'blocked';
 
                       return (
                         <button
@@ -367,6 +443,13 @@ export function BookingEngine() {
                           type="button"
                           disabled={isDisabled}
                           onClick={() => setSelectedDate(day)}
+                          title={
+                            isBlockedDay
+                              ? `Unavailable: ${daySlotInfo.reason || 'Blocked'}`
+                              : isDisabled
+                              ? 'Unavailable'
+                              : `${daySlotInfo.slots.length} slots available`
+                          }
                           style={{
                             aspectRatio: '1',
                             display: 'grid',
@@ -385,7 +468,10 @@ export function BookingEngine() {
                               : '#BACDD1',
                             background: isSelected
                               ? '#2F616F'
+                              : isBlockedDay && !isPast
+                              ? '#FEE2E2'
                               : 'transparent',
+                            textDecoration: isBlockedDay && !isPast ? 'line-through' : 'none',
                             transition: 'all 0.15s',
                           }}
                         >
@@ -398,45 +484,71 @@ export function BookingEngine() {
 
                 {/* 2. Availability Time Slots */}
                 <div>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 650, marginBottom: '14px', color: 'var(--navy-900)' }}>
-                    Availability for {format(selectedDate, 'EEEE, MMMM d')}
-                  </h3>
-
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(2, 1fr)',
-                      gap: '10px',
-                      maxHeight: '360px',
-                      overflowY: 'auto',
-                      paddingRight: '4px',
-                    }}
-                  >
-                    {TIME_SLOTS.map((slot) => {
-                      const isSlotActive = slot === selectedSlot;
-                      return (
-                        <button
-                          key={slot}
-                          type="button"
-                          onClick={() => setSelectedSlot(slot)}
-                          style={{
-                            padding: '10px 14px',
-                            borderRadius: '99px',
-                            border: `1.5px solid ${isSlotActive ? '#2F616F' : 'var(--line)'}`,
-                            background: isSlotActive ? '#2F616F' : '#fff',
-                            color: isSlotActive ? '#fff' : 'var(--navy-900)',
-                            fontSize: '0.88rem',
-                            fontWeight: isSlotActive ? 700 : 600,
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.15s',
-                          }}
-                        >
-                          {slot}
-                        </button>
-                      );
-                    })}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 650, color: 'var(--navy-900)', margin: 0 }}>
+                      Availability for {format(selectedDate, 'EEEE, MMMM d')}
+                    </h3>
+                    {currentDaySlots.reason && (
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#8B5CF6', background: '#EDE9FE', padding: '2px 8px', borderRadius: '4px' }}>
+                        {currentDaySlots.reason}
+                      </span>
+                    )}
                   </div>
+
+                  {currentDaySlots.slots.length === 0 ? (
+                    <div
+                      style={{
+                        padding: '32px 16px',
+                        background: '#FEF2F2',
+                        borderRadius: '8px',
+                        border: '1px solid #FECACA',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <p style={{ margin: 0, color: '#991B1B', fontWeight: 600, fontSize: '0.92rem' }}>
+                        {currentDaySlots.reason || 'No appointment slots available on this date.'}
+                      </p>
+                      <p style={{ margin: '6px 0 0 0', color: 'var(--muted)', fontSize: '0.82rem' }}>
+                        Please select another open date on the calendar.
+                      </p>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '10px',
+                        maxHeight: '360px',
+                        overflowY: 'auto',
+                        paddingRight: '4px',
+                      }}
+                    >
+                      {currentDaySlots.slots.map((slot) => {
+                        const isSlotActive = slot === selectedSlot;
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            onClick={() => setSelectedSlot(slot)}
+                            style={{
+                              padding: '10px 14px',
+                              borderRadius: '99px',
+                              border: `1.5px solid ${isSlotActive ? '#2F616F' : 'var(--line)'}`,
+                              background: isSlotActive ? '#2F616F' : '#fff',
+                              color: isSlotActive ? '#fff' : 'var(--navy-900)',
+                              fontSize: '0.88rem',
+                              fontWeight: isSlotActive ? 700 : 600,
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {slot}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

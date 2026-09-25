@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { Calendar as CalendarIcon, List, Search, Filter, Phone, Mail, Clock, FileText, Check, X } from 'lucide-react';
+import { Calendar as CalendarIcon, List, Search, Filter, Phone, Mail, Clock, FileText, Check, X, CalendarCheck } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Appointment {
@@ -96,8 +97,18 @@ export default function AdminAppointmentsPage() {
           </p>
         </div>
 
-        {/* View mode toggle */}
-        <div style={{ display: 'flex', border: '1px solid var(--line)', borderRadius: '6px', overflow: 'hidden', background: '#fff' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link
+            href="/admin/availability"
+            className="btn btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', padding: '8px 16px' }}
+          >
+            <CalendarCheck size={16} />
+            <span>Manage Available Dates &amp; Times &rarr;</span>
+          </Link>
+
+          {/* View mode toggle */}
+          <div style={{ display: 'flex', border: '1px solid var(--line)', borderRadius: '6px', overflow: 'hidden', background: '#fff' }}>
           <button
             type="button"
             onClick={() => setViewMode('table')}
@@ -136,6 +147,7 @@ export default function AdminAppointmentsPage() {
           </button>
         </div>
       </div>
+    </div>
 
       {/* Filter and Search Toolbar */}
       <div
