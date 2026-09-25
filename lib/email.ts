@@ -14,7 +14,7 @@ export async function sendBookingNotificationEmail(appointment: {
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const adminEmail = process.env.ADMIN_EMAIL || 'credtaxsolution@gmail.com';
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'CredTax <onboarding@resend.dev>';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'CredTax Notifications <onboarding@resend.dev>';
 
   if (!apiKey) {
     console.log('[Resend Mock] RESEND_API_KEY not configured. Email notification payload:', {
@@ -25,11 +25,13 @@ export async function sendBookingNotificationEmail(appointment: {
     return { success: true, mocked: true };
   }
 
-  try {
-    const resend = new Resend(apiKey);
+  const resend = new Resend(apiKey);
+  let adminSent = false;
+  let clientSent = false;
 
-    // 1. Send detailed notification to Admin
-    await resend.emails.send({
+  // 1. Send detailed notification to Admin
+  try {
+    const adminRes = await resend.emails.send({
       from: fromEmail,
       to: adminEmail,
       subject: `[New Appointment] ${appointment.client_name} - ${appointment.service_type}`,
@@ -56,41 +58,53 @@ export async function sendBookingNotificationEmail(appointment: {
         </div>
       `,
     });
-
-    // 2. Send confirmation to Client
-    await resend.emails.send({
-      from: fromEmail,
-      to: appointment.email,
-      subject: `Your CredTax Discovery Session Confirmation - ${appointment.appointment_date}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #D8E2E4; border-radius: 8px; background: #ffffff;">
-          <h2 style="color: #2F616F; margin-top: 0;">Appointment Confirmed</h2>
-          <p style="font-size: 15px; color: #183941;">Hello ${appointment.client_name},</p>
-          <p style="font-size: 15px; color: #183941;">
-            Thank you for scheduling a discovery session with CredTax Solution. We look forward to discussing your firm's capacity requirements and exploring how our team can support your workflow.
-          </p>
-          <div style="background-color: #F2F7F8; padding: 18px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2F616F;">
-            <p style="margin: 0 0 8px 0; color: #183941; font-size: 14px;"><strong>Date:</strong> ${appointment.appointment_date}</p>
-            <p style="margin: 0 0 8px 0; color: #183941; font-size: 14px;"><strong>Time:</strong> ${appointment.start_time} (${appointment.timezone})</p>
-            <p style="margin: 0; color: #183941; font-size: 14px;"><strong>Service Focus:</strong> ${appointment.service_type}</p>
-          </div>
-          <p style="color: #5E7075; font-size: 14px;">
-            An online meeting link will be sent prior to the session. If you need to reschedule or have questions in advance, please reply to this email or contact us at <a href="mailto:prnithin6@gmail.com" style="color: #2F616F; font-weight: 600;">prnithin6@gmail.com</a>.
-          </p>
-          <p style="margin-top: 30px; font-size: 14px; color: #183941;">
-            Best regards,<br>
-            <strong>CredTax Solution LLP Team</strong><br>
-            <span style="color: #5E7075; font-size: 13px;">Offshore Tax &amp; Accounting Extension for CPA Firms</span>
-          </p>
-        </div>
-      `,
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending Resend booking email:', error);
-    return { success: false, error };
+    console.log('[Resend] Admin booking notification sent successfully:', adminRes);
+    adminSent = true;
+  } catch (err) {
+    console.error('[Resend Error] Failed to send admin booking notification:', err);
   }
+
+  // 2. Send confirmation to Client (if custom domain is active OR client email is the registered admin address)
+  const isSandbox = fromEmail.includes('resend.dev');
+  const canSendToClient = !isSandbox || appointment.email.toLowerCase() === adminEmail.toLowerCase();
+
+  if (canSendToClient && appointment.email) {
+    try {
+      const clientRes = await resend.emails.send({
+        from: fromEmail,
+        to: appointment.email,
+        subject: `Your CredTax Discovery Session Confirmation - ${appointment.appointment_date}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #D8E2E4; border-radius: 8px; background: #ffffff;">
+            <h2 style="color: #2F616F; margin-top: 0;">Appointment Confirmed</h2>
+            <p style="font-size: 15px; color: #183941;">Hello ${appointment.client_name},</p>
+            <p style="font-size: 15px; color: #183941;">
+              Thank you for scheduling a discovery session with CredTax Solution. We look forward to discussing your firm's capacity requirements and exploring how our team can support your workflow.
+            </p>
+            <div style="background-color: #F2F7F8; padding: 18px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2F616F;">
+              <p style="margin: 0 0 8px 0; color: #183941; font-size: 14px;"><strong>Date:</strong> ${appointment.appointment_date}</p>
+              <p style="margin: 0 0 8px 0; color: #183941; font-size: 14px;"><strong>Time:</strong> ${appointment.start_time} (${appointment.timezone})</p>
+              <p style="margin: 0; color: #183941; font-size: 14px;"><strong>Service Focus:</strong> ${appointment.service_type}</p>
+            </div>
+            <p style="color: #5E7075; font-size: 14px;">
+              An online meeting link will be sent prior to the session. If you need to reschedule or have questions in advance, please reply to this email or contact us at <a href="mailto:prnithin6@gmail.com" style="color: #2F616F; font-weight: 600;">prnithin6@gmail.com</a>.
+            </p>
+            <p style="margin-top: 30px; font-size: 14px; color: #183941;">
+              Best regards,<br>
+              <strong>CredTax Solution LLP Team</strong><br>
+              <span style="color: #5E7075; font-size: 13px;">Offshore Tax &amp; Accounting Extension for CPA Firms</span>
+            </p>
+          </div>
+        `,
+      });
+      console.log('[Resend] Client confirmation sent:', clientRes);
+      clientSent = true;
+    } catch (err) {
+      console.warn('[Resend Sandbox Notice] Could not send to external client in sandbox mode:', err);
+    }
+  }
+
+  return { success: adminSent || clientSent, adminSent, clientSent };
 }
 
 export async function sendContactFormNotificationEmail(submission: {
@@ -107,7 +121,7 @@ export async function sendContactFormNotificationEmail(submission: {
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const adminEmail = process.env.ADMIN_EMAIL || 'credtaxsolution@gmail.com';
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'CredTax <onboarding@resend.dev>';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'CredTax Notifications <onboarding@resend.dev>';
 
   if (!apiKey) {
     console.log('[Resend Mock] RESEND_API_KEY not configured. Contact Form submission payload:', {
@@ -118,11 +132,13 @@ export async function sendContactFormNotificationEmail(submission: {
     return { success: true, mocked: true };
   }
 
-  try {
-    const resend = new Resend(apiKey);
+  const resend = new Resend(apiKey);
+  let adminSent = false;
+  let clientSent = false;
 
-    // 1. Send detailed notification to Admin
-    await resend.emails.send({
+  // 1. Send detailed notification to Admin
+  try {
+    const adminRes = await resend.emails.send({
       from: fromEmail,
       to: adminEmail,
       subject: `[New Website Inquiry] ${submission.name} - ${submission.firm}`,
@@ -150,38 +166,50 @@ export async function sendContactFormNotificationEmail(submission: {
         </div>
       `,
     });
+    console.log('[Resend] Admin form notification sent successfully:', adminRes);
+    adminSent = true;
+  } catch (err) {
+    console.error('[Resend Error] Failed to send admin form notification:', err);
+  }
 
-    // 2. Send acknowledgment to the Submitter
-    await resend.emails.send({
-      from: fromEmail,
-      to: submission.email,
-      subject: `We've received your inquiry - CredTax Solution`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #D8E2E4; border-radius: 8px; background: #ffffff;">
-          <h2 style="color: #2F616F; margin-top: 0;">Thank You for Reaching Out</h2>
-          <p style="font-size: 15px; color: #183941;">Hello ${submission.name},</p>
-          <p style="font-size: 15px; color: #183941;">
-            We have received your firm's inquiry regarding <strong>${submission.need}</strong> support for <strong>${submission.firm}</strong>.
-          </p>
-          <p style="font-size: 14px; color: #5E7075; line-height: 1.6;">
-            A senior member of our team will review your workflow requirements and follow up within 1 business day with relevant support models and capacity options.
-          </p>
-          <div style="background-color: #F2F7F8; padding: 15px; border-radius: 6px; margin: 20px 0; font-size: 14px;">
-            <p style="margin: 0; color: #183941;">
-              If your inquiry is urgent or you prefer to select a time directly, you can also <a href="https://credtaxsolution.com/book-appointment" style="color: #2F616F; font-weight: 600;">book a consultation online</a>.
+  // 2. Send acknowledgment to the Submitter (if custom domain active OR submitter is admin)
+  const isSandbox = fromEmail.includes('resend.dev');
+  const canSendToClient = !isSandbox || submission.email.toLowerCase() === adminEmail.toLowerCase();
+
+  if (canSendToClient && submission.email) {
+    try {
+      const clientRes = await resend.emails.send({
+        from: fromEmail,
+        to: submission.email,
+        subject: `We've received your inquiry - CredTax Solution`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #D8E2E4; border-radius: 8px; background: #ffffff;">
+            <h2 style="color: #2F616F; margin-top: 0;">Thank You for Reaching Out</h2>
+            <p style="font-size: 15px; color: #183941;">Hello ${submission.name},</p>
+            <p style="font-size: 15px; color: #183941;">
+              We have received your firm's inquiry regarding <strong>${submission.need}</strong> support for <strong>${submission.firm}</strong>.
+            </p>
+            <p style="font-size: 14px; color: #5E7075; line-height: 1.6;">
+              A senior member of our team will review your workflow requirements and follow up within 1 business day with relevant support models and capacity options.
+            </p>
+            <div style="background-color: #F2F7F8; padding: 15px; border-radius: 6px; margin: 20px 0; font-size: 14px;">
+              <p style="margin: 0; color: #183941;">
+                If your inquiry is urgent or you prefer to select a time directly, you can also <a href="https://credtaxsolution.com/book-appointment" style="color: #2F616F; font-weight: 600;">book a consultation online</a>.
+              </p>
+            </div>
+            <p style="margin-top: 25px; font-size: 14px; color: #183941;">
+              Best regards,<br>
+              <strong>CredTax Solution LLP Team</strong>
             </p>
           </div>
-          <p style="margin-top: 25px; font-size: 14px; color: #183941;">
-            Best regards,<br>
-            <strong>CredTax Solution LLP Team</strong>
-          </p>
-        </div>
-      `,
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending Resend contact email:', error);
-    return { success: false, error };
+        `,
+      });
+      console.log('[Resend] Submitter confirmation sent:', clientRes);
+      clientSent = true;
+    } catch (err) {
+      console.warn('[Resend Sandbox Notice] Could not send to external submitter in sandbox mode:', err);
+    }
   }
+
+  return { success: adminSent || clientSent, adminSent, clientSent };
 }
