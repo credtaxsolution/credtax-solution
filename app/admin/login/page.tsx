@@ -8,8 +8,8 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('credtaxsolution@gmail.com');
-  const [password, setPassword] = useState('Credtax@2027??');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -105,6 +105,8 @@ export default function AdminLoginPage() {
               id="admin-email"
               type="email"
               required
+              autoComplete="username"
+              placeholder="name@firm.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{ padding: '0.7em 0.85em', fontSize: '0.95rem' }}
@@ -119,6 +121,8 @@ export default function AdminLoginPage() {
               id="admin-pwd"
               type="password"
               required
+              autoComplete="current-password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{ padding: '0.7em 0.85em', fontSize: '0.95rem' }}

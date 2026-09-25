@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import {
   format,
   addMonths,
@@ -107,6 +108,59 @@ export function BookingEngine() {
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [formTouched, setFormTouched] = useState<Record<string, boolean>>({});
+  const [step1Error, setStep1Error] = useState('');
+
+  // Validate fields in booking step 2
+  const validateField = (field: string, value: string): string => {
+    switch (field) {
+      case 'clientName':
+        if (!value.trim()) return 'Full name is required.';
+        if (value.trim().length < 2) return 'Name must be at least 2 characters.';
+        return '';
+      case 'email':
+        if (!value.trim()) return 'Email address is required.';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value.trim())) return 'Please enter a valid work email (e.g. name@firm.com).';
+        return '';
+      case 'phoneNumber':
+        if (value.trim()) {
+          const clean = value.replace(/[\s().-]/g, '');
+          if (clean.length < 7) return 'Please enter a valid phone number (at least 7 digits).';
+        }
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const handleFieldChange = (field: string, value: string) => {
+    if (field === 'clientName') setClientName(value);
+    if (field === 'email') setEmail(value);
+    if (field === 'phoneNumber') setPhoneNumber(value);
+
+    if (formTouched[field]) {
+      const err = validateField(field, value);
+      setFormErrors((prev) => ({ ...prev, [field]: err }));
+    }
+  };
+
+  const handleFieldBlur = (field: string, value: string) => {
+    setFormTouched((prev) => ({ ...prev, [field]: true }));
+    const err = validateField(field, value);
+    setFormErrors((prev) => ({ ...prev, [field]: err }));
+  };
+
+  const handleProceedToStep2 = () => {
+    if (!selectedSlot || currentDaySlots.slots.length === 0) {
+      setStep1Error('Please select an available time slot from the list before proceeding.');
+      return;
+    }
+    setStep1Error('');
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Live Availability & Booked Slots State
   const [availabilitySettings, setAvailabilitySettings] = useState<AvailabilitySettings>(DEFAULT_AVAILABILITY);
@@ -196,8 +250,33 @@ export function BookingEngine() {
 
   const handleBookNow = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMessage('');
+
+    const nameErr = validateField('clientName', clientName);
+    const emailErr = validateField('email', email);
+    const phoneErr = validateField('phoneNumber', phoneNumber);
+
+    const newErrors: Record<string, string> = {};
+    if (nameErr) newErrors.clientName = nameErr;
+    if (emailErr) newErrors.email = emailErr;
+    if (phoneErr) newErrors.phoneNumber = phoneErr;
+
+    setFormErrors(newErrors);
+    setFormTouched({
+      clientName: true,
+      email: true,
+      phoneNumber: true,
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrorMessage('Please review the highlighted fields below and provide valid information.');
+      const firstKey = Object.keys(newErrors)[0];
+      const el = document.getElementById(`b-${firstKey === 'clientName' ? 'name' : firstKey === 'phoneNumber' ? 'phone' : 'email'}`);
+      if (el) el.focus();
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
@@ -639,10 +718,31 @@ export function BookingEngine() {
                 </div>
               </div>
 
+              {step1Error && (
+                <div
+                  role="alert"
+                  style={{
+                    padding: '10px 14px',
+                    background: '#FDF2F2',
+                    border: '1px solid #F8B4B4',
+                    borderRadius: '6px',
+                    color: '#9B1C1C',
+                    marginBottom: '16px',
+                    fontSize: '0.88rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                  <span>{step1Error}</span>
+                </div>
+              )}
+
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => setStep(2)}
+                onClick={handleProceedToStep2}
                 style={{
                   width: '100%',
                   borderRadius: '99px',
@@ -690,39 +790,29 @@ export function BookingEngine() {
             >
               <h2 style={{ fontSize: '1.35rem', marginBottom: '16px' }}>Client Details</h2>
 
-              <div
-                style={{
-                  background: 'var(--mist)',
-                  padding: '12px 16px',
-                  borderRadius: '6px',
-                  fontSize: '0.92rem',
-                  marginBottom: '24px',
-                  color: 'var(--muted)',
-                }}
-              >
-                <span>Have an account? </span>
-                <Link href="/admin/login" className="link" style={{ fontWeight: 650 }}>
-                  Log in
-                </Link>
-              </div>
-
               {errorMessage && (
                 <div
+                  role="alert"
+                  aria-live="assertive"
                   style={{
-                    padding: '12px',
-                    background: '#FDF2F2',
-                    border: '1px solid #F8B4B4',
-                    borderRadius: '4px',
-                    color: '#9B1C1C',
+                    padding: '12px 16px',
+                    background: '#FEF2F2',
+                    border: '1px solid #FCA5A5',
+                    borderRadius: '6px',
+                    color: '#991B1B',
                     marginBottom: '20px',
-                    fontSize: '0.9rem',
+                    fontSize: '0.92rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
                   }}
                 >
-                  {errorMessage}
+                  <AlertCircle size={18} style={{ color: '#DC2626', flexShrink: 0 }} />
+                  <span>{errorMessage}</span>
                 </div>
               )}
 
-              <form onSubmit={handleBookNow}>
+              <form onSubmit={handleBookNow} noValidate>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                   <div className="field">
                     <label htmlFor="b-name">
@@ -733,9 +823,21 @@ export function BookingEngine() {
                       type="text"
                       required
                       value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
+                      onChange={(e) => handleFieldChange('clientName', e.target.value)}
+                      onBlur={(e) => handleFieldBlur('clientName', e.target.value)}
                       placeholder="e.g. John Miller"
+                      aria-invalid={!!formErrors.clientName && formTouched.clientName}
+                      style={{
+                        border: formErrors.clientName && formTouched.clientName ? '1.5px solid #DC2626' : undefined,
+                        background: formErrors.clientName && formTouched.clientName ? '#FFF5F5' : undefined,
+                      }}
                     />
+                    {formErrors.clientName && formTouched.clientName && (
+                      <p style={{ color: '#DC2626', fontSize: '0.82rem', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertCircle size={13} style={{ flexShrink: 0 }} />
+                        <span>{formErrors.clientName}</span>
+                      </p>
+                    )}
                   </div>
                   <div className="field">
                     <label htmlFor="b-firm">Firm name</label>
@@ -759,9 +861,21 @@ export function BookingEngine() {
                       type="email"
                       required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
+                      onBlur={(e) => handleFieldBlur('email', e.target.value)}
                       placeholder="name@firmcpa.com"
+                      aria-invalid={!!formErrors.email && formTouched.email}
+                      style={{
+                        border: formErrors.email && formTouched.email ? '1.5px solid #DC2626' : undefined,
+                        background: formErrors.email && formTouched.email ? '#FFF5F5' : undefined,
+                      }}
                     />
+                    {formErrors.email && formTouched.email && (
+                      <p style={{ color: '#DC2626', fontSize: '0.82rem', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertCircle size={13} style={{ flexShrink: 0 }} />
+                        <span>{formErrors.email}</span>
+                      </p>
+                    )}
                   </div>
                   <div className="field">
                     <label htmlFor="b-phone">Phone</label>
@@ -789,11 +903,23 @@ export function BookingEngine() {
                         id="b-phone"
                         type="tel"
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
+                        onBlur={(e) => handleFieldBlur('phoneNumber', e.target.value)}
                         placeholder="555-0199"
-                        style={{ flex: 1 }}
+                        style={{
+                          flex: 1,
+                          border: formErrors.phoneNumber && formTouched.phoneNumber ? '1.5px solid #DC2626' : undefined,
+                          background: formErrors.phoneNumber && formTouched.phoneNumber ? '#FFF5F5' : undefined,
+                        }}
+                        aria-invalid={!!formErrors.phoneNumber && formTouched.phoneNumber}
                       />
                     </div>
+                    {formErrors.phoneNumber && formTouched.phoneNumber && (
+                      <p style={{ color: '#DC2626', fontSize: '0.82rem', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertCircle size={13} style={{ flexShrink: 0 }} />
+                        <span>{formErrors.phoneNumber}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 

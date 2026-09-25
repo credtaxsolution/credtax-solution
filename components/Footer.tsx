@@ -54,7 +54,6 @@ export function Footer() {
               <li><Link href="/contact">Contact</Link></li>
               <li><Link href="/book-appointment">Book Appointment</Link></li>
               <li><Link href="/privacy-policy">Privacy Policy</Link></li>
-              <li><Link href="/admin" style={{ opacity: 0.6 }}>Admin Portal</Link></li>
             </ul>
           </nav>
 

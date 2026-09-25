@@ -1,6 +1,8 @@
 import React from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { BackToTop } from '@/components/BackToTop';
+import { SmoothScrollHandler } from '@/components/SmoothScrollHandler';
 
 export default function PublicLayout({
   children,
@@ -9,11 +11,13 @@ export default function PublicLayout({
 }) {
   return (
     <>
+      <SmoothScrollHandler />
       <Header />
       <main id="main" tabIndex={-1}>
         {children}
       </main>
       <Footer />
+      <BackToTop />
     </>
   );
 }
