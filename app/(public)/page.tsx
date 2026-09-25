@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { Icon } from '@/components/Icons';
 import { createPublicClient } from '@/lib/supabase/public';
 
+export const revalidate = 60;
+
 export default async function HomePage() {
   // Fetch active testimonials from Supabase (falling back gracefully)
   let testimonials: Array<{

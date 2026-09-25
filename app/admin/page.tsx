@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
       setSubmissions(subs || []);
       setStats({
         totalAppointments: aptCount || 0,
-        confirmedAppointments: apts?.filter((a) => a.status === 'confirmed').length || 0,
+        confirmedAppointments: apts?.filter((a: { status?: string }) => a.status === 'confirmed').length || 0,
         totalSubmissions: subCount || 0,
         totalBlogs: blogCount || 0,
       });
