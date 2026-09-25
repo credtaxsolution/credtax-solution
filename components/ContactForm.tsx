@@ -31,9 +31,10 @@ export function ContactForm() {
     setErrorMsg('');
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.from('contact_submissions').insert([
-        {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.name,
           firm: formData.firm,
           email: formData.email,
@@ -44,11 +45,14 @@ export function ContactForm() {
           workload: formData.workload || null,
           support_structure: formData.support,
           message: formData.message || null,
-          status: 'new',
-        },
-      ]);
+        }),
+      });
 
-      if (error) throw error;
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit form.');
+      }
+
       setSubmitted(true);
     } catch (err: unknown) {
       console.error('Contact submission error:', err);
