@@ -343,69 +343,35 @@ export function BookingEngine() {
   const currentServiceObj = SERVICES.find((s) => s.title === selectedService) || SERVICES[0];
 
   return (
-    <div style={{ maxWidth: '1180px', marginInline: 'auto' }}>
+    <div className="booking-wrap">
       {/* ========================================================
           STEP 1: SELECT DATE, TIME & SERVICE
           ======================================================== */}
       {step === 1 && (
         <div>
           <div style={{ marginBottom: '32px' }}>
-            <h1 style={{ fontSize: 'clamp(2rem, 1.3rem + 2.5vw, 3.2rem)', marginBottom: '8px' }}>
+            <h1 style={{ fontSize: 'clamp(1.8rem, 1.3rem + 2vw, 3rem)', marginBottom: '8px' }}>
               Schedule your service
             </h1>
-            <p className="muted" style={{ fontSize: '1.15rem', margin: 0 }}>
+            <p className="muted" style={{ fontSize: '1.05rem', margin: 0 }}>
               Check out our availability and book the date and time that works for you
             </p>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)',
-              gap: 'clamp(24px, 4vw, 56px)',
-              alignItems: 'start',
-            }}
-          >
+          <div className="booking-layout">
             {/* Left Area: Date & Time Picker */}
-            <div
-              style={{
-                background: '#fff',
-                border: '1px solid var(--line)',
-                borderRadius: '8px',
-                padding: 'clamp(20px, 3vw, 36px)',
-                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '12px',
-                  marginBottom: '24px',
-                  borderBottom: '1px solid var(--line)',
-                  paddingBottom: '16px',
-                }}
-              >
-                <h2 style={{ fontSize: '1.35rem', margin: 0 }}>Select a Date and Time</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label htmlFor="tzSelect" style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
+            <div className="booking-card">
+              <div className="booking-header-row">
+                <h2 style={{ fontSize: '1.3rem', margin: 0 }}>Select a Date and Time</h2>
+                <div className="booking-tz-wrap">
+                  <label htmlFor="tzSelect" style={{ fontSize: '0.85rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
                     Time zone:
                   </label>
                   <select
                     id="tzSelect"
+                    className="booking-tz-select"
                     value={selectedTimezone}
                     onChange={(e) => setSelectedTimezone(e.target.value)}
-                    style={{
-                      fontSize: '0.88rem',
-                      fontWeight: 500,
-                      padding: '4px 8px',
-                      border: '1px solid var(--line)',
-                      borderRadius: '4px',
-                      background: '#fff',
-                      color: 'var(--navy-900)',
-                    }}
                   >
                     {TIMEZONES.map((tz) => (
                       <option key={tz.value} value={tz.value}>
@@ -417,13 +383,7 @@ export function BookingEngine() {
               </div>
 
               {/* Sub-grid: Month Calendar & Availability Slots */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  gap: 'clamp(24px, 3vw, 40px)',
-                }}
-              >
+              <div className="booking-calendar-grid">
                 {/* 1. Month Calendar */}
                 <div>
                   <div
@@ -592,16 +552,7 @@ export function BookingEngine() {
                       </p>
                     </div>
                   ) : (
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        gap: '10px',
-                        maxHeight: '360px',
-                        overflowY: 'auto',
-                        paddingRight: '4px',
-                      }}
-                    >
+                    <div className="booking-slots-grid">
                       {currentDaySlots.slots.map((slot) => {
                         const isSlotActive = slot === selectedSlot;
                         return (
@@ -633,15 +584,7 @@ export function BookingEngine() {
             </div>
 
             {/* Right Area: Service Details Card */}
-            <div
-              style={{
-                background: '#fff',
-                border: '1px solid var(--line)',
-                borderRadius: '8px',
-                padding: 'clamp(20px, 3vw, 32px)',
-                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
-              }}
-            >
+            <div className="booking-summary-card">
               <h3 style={{ fontSize: '1.25rem', marginBottom: '12px', color: 'var(--navy-900)' }}>
                 Service Details
               </h3>
@@ -712,9 +655,15 @@ export function BookingEngine() {
                   <span className="muted">Duration:</span>
                   <span style={{ fontWeight: 600 }}>30 minutes</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.9rem' }}>
                   <span className="muted">Pricing:</span>
                   <span style={{ fontWeight: 700, color: 'var(--navy-900)' }}>Free (Introductory)</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                  <span className="muted">Selected Slot:</span>
+                  <span style={{ fontWeight: 650, color: selectedSlot ? 'var(--navy-900)' : 'var(--muted)' }}>
+                    {selectedSlot ? `${format(selectedDate, 'EEE, MMM d')} at ${selectedSlot}` : 'None chosen yet'}
+                  </span>
                 </div>
               </div>
 
@@ -764,31 +713,47 @@ export function BookingEngine() {
           ======================================================== */}
       {step === 2 && (
         <div>
-          <div style={{ marginBottom: '32px' }}>
-            <h1 style={{ fontSize: 'clamp(2rem, 1.3rem + 2.5vw, 3.2rem)', marginBottom: '8px' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h1 style={{ fontSize: 'clamp(1.8rem, 1.3rem + 2vw, 3rem)', marginBottom: '8px' }}>
               Booking Form
             </h1>
+            <p className="muted" style={{ fontSize: '1.05rem', margin: 0 }}>
+              Provide your contact information to reserve your discovery consultation
+            </p>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)',
-              gap: 'clamp(24px, 4vw, 56px)',
-              alignItems: 'start',
-            }}
-          >
-            {/* Left: Client Form */}
-            <div
+          {/* Top Appointment Recap Banner */}
+          <div className="booking-recap-bar">
+            <div>
+              <span style={{ fontSize: '0.8rem', color: 'var(--muted)', display: 'block' }}>Selected Consultation:</span>
+              <strong style={{ color: 'var(--navy-900)', fontSize: '0.95rem' }}>{selectedService}</strong>
+              <span style={{ color: 'var(--muted)', fontSize: '0.9rem', marginInline: '8px' }}>•</span>
+              <span style={{ color: 'var(--navy-900)', fontSize: '0.9rem', fontWeight: 600 }}>
+                {format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedSlot}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStep(1)}
               style={{
-                background: '#fff',
-                border: '1px solid var(--line)',
-                borderRadius: '8px',
-                padding: 'clamp(20px, 3vw, 36px)',
-                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
+                background: 'none',
+                border: 'none',
+                color: 'var(--accent)',
+                fontWeight: 650,
+                fontSize: '0.88rem',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: '4px 0',
               }}
             >
-              <h2 style={{ fontSize: '1.35rem', marginBottom: '16px' }}>Client Details</h2>
+              Change slot
+            </button>
+          </div>
+
+          <div className="booking-layout">
+            {/* Left: Client Form */}
+            <div className="booking-card">
+              <h2 style={{ fontSize: '1.3rem', marginBottom: '16px' }}>Client Details</h2>
 
               {errorMessage && (
                 <div
@@ -813,7 +778,7 @@ export function BookingEngine() {
               )}
 
               <form onSubmit={handleBookNow} noValidate>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+                <div className="booking-form-row">
                   <div className="field">
                     <label htmlFor="b-name">
                       Full name <span className="req">*</span>
@@ -851,7 +816,7 @@ export function BookingEngine() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+                <div className="booking-form-row">
                   <div className="field">
                     <label htmlFor="b-email">
                       Email <span className="req">*</span>
@@ -879,18 +844,19 @@ export function BookingEngine() {
                   </div>
                   <div className="field">
                     <label htmlFor="b-phone">Phone</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                       <select
                         aria-label="Country code"
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value)}
                         style={{
-                          width: '100px',
-                          padding: '0.75em 0.5em',
+                          width: '96px',
+                          flexShrink: 0,
+                          padding: '0.75em 0.4em',
                           border: '1.5px solid #B8CACC',
                           borderRadius: '4px',
                           background: '#fff',
-                          fontSize: '0.95rem',
+                          fontSize: '0.9rem',
                         }}
                       >
                         {COUNTRY_CODES.map((c) => (
@@ -908,6 +874,8 @@ export function BookingEngine() {
                         placeholder="555-0199"
                         style={{
                           flex: 1,
+                          minWidth: 0,
+                          width: '100%',
                           border: formErrors.phoneNumber && formTouched.phoneNumber ? '1.5px solid #DC2626' : undefined,
                           background: formErrors.phoneNumber && formTouched.phoneNumber ? '#FFF5F5' : undefined,
                         }}
@@ -928,7 +896,7 @@ export function BookingEngine() {
                   <label style={{ display: 'block', fontWeight: 650, fontSize: '0.93rem', color: 'var(--navy-900)', marginBottom: '12px' }}>
                     Services Interested In
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                  <div className="booking-services-grid">
                     {[
                       'US Tax Preparation',
                       'Tax Review & QC',
@@ -988,7 +956,7 @@ export function BookingEngine() {
                   />
                 </div>
 
-                <div style={{ display: 'flex', gap: '16px' }}>
+                <div className="booking-actions">
                   <button
                     type="button"
                     className="btn btn-secondary"
@@ -1014,15 +982,7 @@ export function BookingEngine() {
             </div>
 
             {/* Right: Booking Summary Sidebar */}
-            <div
-              style={{
-                background: '#fff',
-                border: '1px solid var(--line)',
-                borderRadius: '8px',
-                padding: 'clamp(20px, 3vw, 32px)',
-                boxShadow: '0 4px 20px -8px rgba(47, 97, 111, 0.08)',
-              }}
-            >
+            <div className="booking-summary-card">
               <h3 style={{ fontSize: '1.25rem', marginBottom: '16px', color: 'var(--navy-900)' }}>
                 Booking Details
               </h3>
@@ -1078,18 +1038,7 @@ export function BookingEngine() {
           STEP 3: CONFIRMATION / SUCCESS SCREEN
           ======================================================== */}
       {step === 3 && (
-        <div
-          style={{
-            maxWidth: '680px',
-            margin: '40px auto',
-            background: '#fff',
-            border: '1.5px solid var(--gold)',
-            borderRadius: '12px',
-            padding: 'clamp(28px, 5vw, 56px)',
-            textAlign: 'center',
-            boxShadow: '0 12px 36px -12px rgba(47, 97, 111, 0.15)',
-          }}
-        >
+        <div className="booking-success-card">
           <div
             style={{
               width: '64px',
@@ -1106,10 +1055,10 @@ export function BookingEngine() {
             ✓
           </div>
 
-          <h2 style={{ fontFamily: 'var(--serif)', fontSize: '2.2rem', color: 'var(--navy-900)', marginBottom: '12px' }}>
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(1.8rem, 1.4rem + 1.5vw, 2.3rem)', color: 'var(--navy-900)', marginBottom: '12px' }}>
             Your Session Is Scheduled!
           </h2>
-          <p className="muted" style={{ fontSize: '1.1rem', marginBottom: '28px' }}>
+          <p className="muted" style={{ fontSize: '1.05rem', marginBottom: '28px' }}>
             We have reserved your appointment and sent confirmation details to <strong>{email}</strong>.
           </p>
 
@@ -1122,25 +1071,25 @@ export function BookingEngine() {
               marginBottom: '32px',
             }}
           >
-            <div style={{ marginBottom: '8px' }}>
-              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Service:</span>
+            <div className="booking-success-detail-row">
+              <span className="muted" style={{ minWidth: '110px' }}>Service:</span>
               <strong>{selectedService}</strong>
             </div>
-            <div style={{ marginBottom: '8px' }}>
-              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Date &amp; Time:</span>
+            <div className="booking-success-detail-row">
+              <span className="muted" style={{ minWidth: '110px' }}>Date &amp; Time:</span>
               <strong>{format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedSlot}</strong>
             </div>
-            <div style={{ marginBottom: '8px' }}>
-              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Timezone:</span>
+            <div className="booking-success-detail-row">
+              <span className="muted" style={{ minWidth: '110px' }}>Timezone:</span>
               <span>{selectedTimezone}</span>
             </div>
-            <div>
-              <span className="muted" style={{ display: 'inline-block', width: '130px' }}>Attendee:</span>
+            <div className="booking-success-detail-row">
+              <span className="muted" style={{ minWidth: '110px' }}>Attendee:</span>
               <span>{clientName} {firmName ? `(${firmName})` : ''}</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="booking-actions" style={{ justifyContent: 'center', marginTop: '24px' }}>
             <button
               type="button"
               className="btn btn-secondary"
