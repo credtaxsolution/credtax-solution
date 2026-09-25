@@ -2,6 +2,7 @@ import React from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BackToTop } from '@/components/BackToTop';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { SmoothScrollHandler } from '@/components/SmoothScrollHandler';
 
 export default function PublicLayout({
@@ -18,6 +19,7 @@ export default function PublicLayout({
       </main>
       <Footer />
       <BackToTop />
+      <WhatsAppButton />
     </>
   );
 }

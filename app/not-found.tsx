@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BackToTop } from '@/components/BackToTop';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ArrowRight, Home, Calendar, Phone, HelpCircle } from 'lucide-react';
 
 export const metadata = {
@@ -209,6 +210,7 @@ export default function NotFound() {
       </main>
       <Footer />
       <BackToTop />
+      <WhatsAppButton />
     </>
   );
 }
