@@ -15,7 +15,17 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ testimonials: data || [] });
+    const { data: settingsData } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'general')
+      .single();
+    const hideTestimonials = settingsData?.value?.hide_testimonials === true;
+
+    return NextResponse.json({
+      testimonials: data || [],
+      hide_testimonials: hideTestimonials,
+    });
   } catch (err: unknown) {
     console.error('Testimonials GET error:', err);
     return NextResponse.json(
@@ -194,6 +204,59 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error('Testimonials DELETE error:', err);
+    return NextResponse.json(
+      { error: (err as Error).message || 'Server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      return NextResponse.json({ error: 'Unauthorized. Please sign in.' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { hide_testimonials } = body;
+
+    if (typeof hide_testimonials === 'boolean') {
+      const { data: currentSettings } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'general')
+        .single();
+
+      const updatedValue = {
+        ...(currentSettings?.value || {}),
+        hide_testimonials,
+      };
+
+      const { error } = await supabase.from('site_settings').upsert({
+        key: 'general',
+        value: updatedValue,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      try {
+        revalidatePath('/');
+        revalidatePath('/admin/testimonials');
+      } catch (e) {
+        console.warn('Revalidation warning:', e);
+      }
+
+      return NextResponse.json({ success: true, hide_testimonials });
+    }
+
+    return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
+  } catch (err: unknown) {
+    console.error('Testimonials PATCH error:', err);
     return NextResponse.json(
       { error: (err as Error).message || 'Server error' },
       { status: 500 }

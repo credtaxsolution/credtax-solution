@@ -123,7 +123,7 @@ export default function WhyCredTaxPage() {
             </p>
             <p style={{ marginTop: '24px' }}>
               <Link className="btn btn-primary" href="/book-appointment">
-                Schedule a Conversation
+                Book Appointment
               </Link>
             </p>
           </div>

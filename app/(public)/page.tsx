@@ -15,18 +15,33 @@ export default async function HomePage() {
     firm_name: string;
     quote: string;
   }> = [];
+  let hideTestimonials = false;
 
   try {
     const supabase = createPublicClient();
-    const { data } = await supabase
-      .from('testimonials')
-      .select('id, client_name, client_title, firm_name, quote')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-      .limit(4);
 
-    if (data && data.length > 0) {
-      testimonials = data;
+    // Check general settings for testimonial visibility
+    const { data: setRow } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'general')
+      .single();
+
+    if (setRow?.value?.hide_testimonials === true) {
+      hideTestimonials = true;
+    }
+
+    if (!hideTestimonials) {
+      const { data } = await supabase
+        .from('testimonials')
+        .select('id, client_name, client_title, firm_name, quote')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .limit(4);
+
+      if (data && data.length > 0) {
+        testimonials = data;
+      }
     }
   } catch (err) {
     console.error('Failed to fetch testimonials for home page:', err);
@@ -72,7 +87,7 @@ export default async function HomePage() {
             </ul>
             <div className="btn-row">
               <Link className="btn btn-primary" href="/book-appointment">
-                Book Consultation
+                Book Appointment
               </Link>
               <Link className="btn btn-secondary" href="/how-we-work">
                 Explore How We Work
@@ -344,14 +359,14 @@ export default async function HomePage() {
               </div>
             </div>
             <div>
-              <p className="ledger-title">At the start, CredTax learns your firm&apos;s</p>
+              <p className="ledger-title">At the start, CredTax learns your&nbsp;firm&apos;s:</p>
               <ul className="ledger">
-                <li>Software <span>the systems you use</span></li>
-                <li>Workflow <span>how work moves</span></li>
-                <li>Documentation standards <span>what &ldquo;complete&rdquo; means</span></li>
-                <li>Review preferences <span>how you like work presented</span></li>
-                <li>Recurring client patterns <span>what repeats each cycle</span></li>
-                <li>Communication expectations <span>who hears what, and when</span></li>
+                <li><span className="ledger-key">Software</span> <span className="ledger-val">the systems you use</span></li>
+                <li><span className="ledger-key">Workflow</span> <span className="ledger-val">how work moves</span></li>
+                <li><span className="ledger-key">Documentation standards</span> <span className="ledger-val">what &ldquo;complete&rdquo; means</span></li>
+                <li><span className="ledger-key">Review preferences</span> <span className="ledger-val">how you like work presented</span></li>
+                <li><span className="ledger-key">Recurring client patterns</span> <span className="ledger-val">what repeats each cycle</span></li>
+                <li><span className="ledger-key">Communication expectations</span> <span className="ledger-val">who hears what, and when</span></li>
               </ul>
             </div>
           </div>
@@ -445,25 +460,27 @@ export default async function HomePage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="section section--mist" id="feedback" aria-labelledby="h-feedback">
-        <div className="wrap">
-          <div className="sec-head">
-            <h2 id="h-feedback">Trusted Through the Work</h2>
-            <p>We&apos;re building CredTax through long-term working relationships and the quality of the work behind them.</p>
+      {!hideTestimonials && (
+        <section className="section section--mist" id="feedback" aria-labelledby="h-feedback">
+          <div className="wrap">
+            <div className="sec-head">
+              <h2 id="h-feedback">Trusted Through the Work</h2>
+              <p>We&apos;re building CredTax through long-term working relationships and the quality of the work behind them.</p>
+            </div>
+            <div className="quotes">
+              {testimonials.map((t) => (
+                <figure key={t.id} className="quote-card" style={{ margin: 0 }}>
+                  <blockquote>&ldquo;{t.quote}&rdquo;</blockquote>
+                  <figcaption>
+                    <cite>{t.client_name}</cite>
+                    <small>{t.client_title}, {t.firm_name}</small>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
           </div>
-          <div className="quotes">
-            {testimonials.map((t) => (
-              <figure key={t.id} className="quote-card" style={{ margin: 0 }}>
-                <blockquote>&ldquo;{t.quote}&rdquo;</blockquote>
-                <figcaption>
-                  <cite>{t.client_name}</cite>
-                  <small>{t.client_title}, {t.firm_name}</small>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FACTS */}
       <section className="section dark" id="facts" aria-labelledby="h-facts">
@@ -562,7 +579,7 @@ export default async function HomePage() {
             </p>
             <div className="btn-row">
               <Link className="btn btn-primary" href="/book-appointment">
-                Schedule a Consultation
+                Book Appointment
               </Link>
               <Link className="btn btn-secondary" href="/services">
                 Explore Support Models

@@ -104,7 +104,7 @@ export default function HowWeWorkPage() {
             <p>Tell us how work moves through your firm today. We&apos;ll help you work out where structured support fits.</p>
             <div className="btn-row">
               <Link className="btn btn-primary" href="/book-appointment">
-                Schedule a Discussion
+                Book Appointment
               </Link>
               <Link className="btn btn-secondary" href="/services">
                 See Services

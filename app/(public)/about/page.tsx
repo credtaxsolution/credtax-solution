@@ -143,7 +143,7 @@ export default function AboutPage() {
             <p className="muted">Tell us where your team needs additional capacity.</p>
             <div className="btn-row">
               <Link className="btn btn-primary" href="/book-appointment">
-                Schedule a Consultation
+                Book Appointment
               </Link>
               <Link className="btn btn-secondary" href="/faq">
                 Read the FAQ

@@ -106,7 +106,7 @@ export default async function InsightsPage() {
             <p>Tell us where work waits in your firm today.</p>
             <div className="btn-row">
               <Link className="btn btn-primary" href="/book-appointment">
-                Schedule a Conversation
+                Book Appointment
               </Link>
             </div>
           </div>

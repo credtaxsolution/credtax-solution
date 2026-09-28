@@ -24,6 +24,10 @@ export default function AdminTestimonialsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Testimonial | null>(null);
 
+  // Section visibility state
+  const [hideTestimonials, setHideTestimonials] = useState(false);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+
   // Form states
   const [formName, setFormName] = useState('');
   const [formTitle, setFormTitle] = useState('');
@@ -60,6 +64,9 @@ export default function AdminTestimonialsPage() {
       if (res.ok) {
         const data = await res.json();
         setTestimonials(data.testimonials || []);
+        if (typeof data.hide_testimonials === 'boolean') {
+          setHideTestimonials(data.hide_testimonials);
+        }
       } else {
         // Fallback to client Supabase
         const supabase = createClient();
@@ -70,6 +77,15 @@ export default function AdminTestimonialsPage() {
 
         if (error) throw error;
         setTestimonials(data || []);
+
+        const { data: setRow } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'general')
+          .single();
+        if (setRow?.value?.hide_testimonials !== undefined) {
+          setHideTestimonials(Boolean(setRow.value.hide_testimonials));
+        }
       }
     } catch (err: unknown) {
       console.error('Error fetching testimonials:', err);
@@ -221,6 +237,31 @@ export default function AdminTestimonialsPage() {
     }
   };
 
+  const handleToggleHideTestimonials = async () => {
+    const nextState = !hideTestimonials;
+    setTogglingVisibility(true);
+    try {
+      const res = await fetch('/api/testimonials', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hide_testimonials: nextState }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update visibility');
+      setHideTestimonials(nextState);
+      showToast(
+        nextState
+          ? 'Testimonial section is now hidden from the public website.'
+          : 'Testimonial section is now visible on the public website.'
+      );
+    } catch (err: unknown) {
+      console.error('Failed to toggle testimonial visibility:', err);
+      showToast((err as Error).message || 'Failed to update visibility.', true);
+    } finally {
+      setTogglingVisibility(false);
+    }
+  };
+
   return (
     <div style={{ maxWidth: '1200px', marginInline: 'auto' }}>
       {/* Page Header */}
@@ -242,6 +283,84 @@ export default function AdminTestimonialsPage() {
         >
           <Plus size={16} />
           <span>Add Testimonial</span>
+        </button>
+      </div>
+
+      {/* Visibility Control Card */}
+      <div
+        style={{
+          background: '#fff',
+          border: '1.5px solid var(--line)',
+          borderRadius: 'var(--radius)',
+          padding: '18px 24px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '20px',
+          flexWrap: 'wrap',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--navy-900)' }}>
+              Public Website Section Visibility
+            </h3>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                padding: '3px 9px',
+                borderRadius: '999px',
+                background: hideTestimonials ? '#FEE2E2' : '#DCFCE7',
+                color: hideTestimonials ? '#991B1B' : '#166534',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {hideTestimonials ? 'Section Hidden' : 'Section Visible'}
+            </span>
+          </div>
+          <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: 'var(--muted)' }}>
+            {hideTestimonials
+              ? 'The testimonial section is currently hidden from the homepage and public website.'
+              : 'The testimonial section is currently active and visible on the homepage.'}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleToggleHideTestimonials}
+          disabled={togglingVisibility}
+          className="btn"
+          style={{
+            padding: '8px 18px',
+            fontSize: '0.88rem',
+            fontWeight: 650,
+            background: hideTestimonials ? '#10B981' : '#EF4444',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: togglingVisibility ? 'not-allowed' : 'pointer',
+            opacity: togglingVisibility ? 0.7 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'background 0.2s',
+          }}
+        >
+          {hideTestimonials ? (
+            <>
+              <Check size={16} />
+              <span>{togglingVisibility ? 'Updating...' : 'Show on Website'}</span>
+            </>
+          ) : (
+            <>
+              <X size={16} />
+              <span>{togglingVisibility ? 'Updating...' : 'Hide from Website'}</span>
+            </>
+          )}
         </button>
       </div>
 

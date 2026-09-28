@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { IconSprite } from '@/components/Icons';
+import { createPublicClient } from '@/lib/supabase/public';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -9,54 +10,78 @@ const inter = Inter({
   variable: '--font-sans',
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://credtaxsolution.com'),
-  title: {
-    default: 'CredTax | Offshore Tax & Accounting Support for CPA Firms',
-    template: '%s | CredTax',
-  },
-  description:
-    'CredTax provides offshore tax, accounting and workflow support for US and Canadian CPA firms, with flexible, dedicated and workflow-based support models.',
-  keywords: [
-    'Offshore tax preparation',
-    'CPA firm support',
-    'US tax for CPAs',
-    'Canadian accounting support',
-    'Tax review and QC',
-    'Bookkeeping offshore',
-    'CredTax Pod',
-    'CPA firm succession',
-  ],
-  authors: [{ name: 'CredTax Solution LLP' }],
-  creator: 'CredTax Solution LLP',
-  publisher: 'CredTax Solution LLP',
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://credtaxsolution.com',
-    siteName: 'CredTax',
-    title: 'CredTax | Offshore Tax & Accounting Support for CPA Firms',
+async function getSiteFavicon(): Promise<string> {
+  try {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'general')
+      .single();
+
+    if (data?.value?.favicon_url) {
+      return data.value.favicon_url;
+    }
+  } catch (err) {
+    console.error('Error fetching favicon settings:', err);
+  }
+  return '/favicon.svg';
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const faviconUrl = await getSiteFavicon();
+
+  return {
+    metadataBase: new URL('https://credtaxsolution.com'),
+    title: {
+      default: 'CredTax | Offshore Tax & Accounting Support for CPA Firms',
+      template: '%s | CredTax',
+    },
     description:
-      'Offshore tax, accounting and workflow support for US and Canadian CPA firms, built around the way your firm already works.',
-    images: [
-      {
-        url: '/images/logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'CredTax Solution',
-      },
+      'CredTax provides offshore tax, accounting and workflow support for US and Canadian CPA firms, with flexible, dedicated and workflow-based support models.',
+    keywords: [
+      'Offshore tax preparation',
+      'CPA firm support',
+      'US tax for CPAs',
+      'Canadian accounting support',
+      'Tax review and QC',
+      'Bookkeeping offshore',
+      'CredTax Pod',
+      'CPA firm succession',
     ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'CredTax | Offshore Tax & Accounting Support for CPA Firms',
-    description:
-      'Offshore tax, accounting and workflow support for US and Canadian CPA firms, built around the way your firm already works.',
-  },
-  icons: {
-    icon: '/favicon.svg',
-  },
-};
+    authors: [{ name: 'CredTax Solution LLP' }],
+    creator: 'CredTax Solution LLP',
+    publisher: 'CredTax Solution LLP',
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: 'https://credtaxsolution.com',
+      siteName: 'CredTax',
+      title: 'CredTax | Offshore Tax & Accounting Support for CPA Firms',
+      description:
+        'Offshore tax, accounting and workflow support for US and Canadian CPA firms, built around the way your firm already works.',
+      images: [
+        {
+          url: '/images/logo.png',
+          width: 1200,
+          height: 630,
+          alt: 'CredTax Solution',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'CredTax | Offshore Tax & Accounting Support for CPA Firms',
+      description:
+        'Offshore tax, accounting and workflow support for US and Canadian CPA firms, built around the way your firm already works.',
+    },
+    icons: {
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
+    },
+  };
+}
 
 const jsonLdOrg = {
   '@context': 'https://schema.org',
@@ -89,14 +114,19 @@ const jsonLdOrg = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const faviconUrl = await getSiteFavicon();
+
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        <link rel="icon" href={faviconUrl} />
+        <link rel="shortcut icon" href={faviconUrl} />
+        <link rel="apple-touch-icon" href={faviconUrl} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }}

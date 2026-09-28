@@ -165,7 +165,7 @@ export default async function BlogPostPage({ params }: Props) {
             &larr; Back to all Insights
           </Link>
           <Link className="btn btn-primary btn-sm" href="/book-appointment">
-            Schedule a Workflow Discussion
+            Book Appointment
           </Link>
         </div>
       </div>

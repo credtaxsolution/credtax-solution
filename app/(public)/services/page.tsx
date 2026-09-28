@@ -52,33 +52,36 @@ export default function ServicesPage() {
             </p>
             <div className="btn-row" style={{ marginTop: '32px' }}>
               <Link className="btn btn-primary" href="/book-appointment">
-                Discuss Your Firm
+                Book Appointment
               </Link>
-              <Link className="btn btn-secondary" href="/services#svc-how">
+              <a className="btn btn-secondary" href="#svc-how">
                 Explore how we work
-              </Link>
+              </a>
             </div>
           </div>
-          <div style={{ textAlign: 'center', padding: '20px' }}>
-            <span className="pill" style={{ color: 'var(--accent-bright)', borderColor: 'var(--accent-bright)' }}>
-              Flexible &bull; Dedicated &bull; Pod
-            </span>
-            <p style={{ marginTop: '16px', color: 'var(--on-dark-muted)' }}>
-              Tailored capacity matching your workflow volume and complexity.
-            </p>
-          </div>
+          <svg className="lines-diagram" viewBox="0 0 420 300" role="img" aria-label="Three lines of increasing length and thickness, representing growing capacity: Flexible, Dedicated and CredTax Pod">
+            <line className="ln" pathLength={1} x1="20" y1="70" x2="180" y2="70" stroke="rgba(255,255,255,.4)" strokeWidth="2" />
+            <circle cx="20" cy="70" r="4" fill="#C7D9DD" />
+            <text x="20" y="98">Flexible</text>
+            <line className="ln" pathLength={1} x1="20" y1="160" x2="280" y2="160" stroke="rgba(255,255,255,.55)" strokeWidth="4" />
+            <circle cx="20" cy="160" r="5" fill="#fff" />
+            <text x="20" y="188">Dedicated</text>
+            <line className="ln" pathLength={1} x1="20" y1="250" x2="400" y2="250" stroke="#6F9EAA" strokeWidth="7" />
+            <circle cx="20" cy="250" r="6" fill="#6F9EAA" />
+            <text x="20" y="278" style={{ fill: '#fff' }}>CredTax Pod</text>
+          </svg>
         </div>
       </section>
 
-      {/* 12. SUBNAV */}
-      <nav className="subnav" aria-label="Services navigation">
+      {/* SUBNAV */}
+      <nav className="subnav" aria-label="Services page sections">
         <div className="wrap">
-          <a href="#svc-tax">US Tax</a>
-          <a href="#svc-review">Tax Review &amp; QC</a>
-          <a href="#svc-accounting">Bookkeeping &amp; Accounting</a>
-          <a href="#svc-workflow">Workflow Support</a>
-          <a href="#svc-how">Engagement Models</a>
-          <a href="#svc-comparison">Comparison</a>
+          <a href="#svc-tax">What we do</a>
+          <a href="#svc-how">How you can work with us</a>
+          <a href="#svc-diagnostic">Which model fits</a>
+          <a href="#svc-comparison">Compare</a>
+          <a href="#svc-pricing">Pricing</a>
+          <a href="#svc-faq">Questions</a>
         </div>
       </nav>
 
@@ -86,7 +89,7 @@ export default function ServicesPage() {
       <section className="section" style={{ paddingBottom: 'clamp(24px, 3vw, 40px)' }} aria-labelledby="h-what">
         <div className="wrap">
           <div className="sec-head">
-            <span className="pill">What we do</span>
+            <p className="eyebrow-s">What we do</p>
             <h2 id="h-what">Four areas where CredTax supports CPA firms.</h2>
             <p>These are the capabilities we bring to an engagement. How they&apos;re delivered depends on the model your firm chooses.</p>
           </div>
@@ -258,7 +261,7 @@ export default function ServicesPage() {
       <section className="section section--mist" id="svc-how" aria-labelledby="h-how-models">
         <div className="wrap">
           <div className="sec-head">
-            <span className="pill">How you can work with us</span>
+            <p className="eyebrow-s">How you can work with us</p>
             <h2 id="h-how-models">Three ways to work with CredTax.</h2>
             <p>
               Not every firm needs the same thing. Some need help finishing a batch of returns. Others want one person who knows their systems well. Some need a coordinated team built around a workflow. CredTax offers three engagement models, matched to how predictable and complex your workload is &mdash; not how big your firm is.
@@ -291,9 +294,9 @@ export default function ServicesPage() {
           {/* MODEL 1 */}
           <article className="md" id="model-flexible" aria-labelledby="h-model-flexible">
             <div>
-              <span className="pill">Model 1</span>
+              <span className="md-tag">Model 1</span>
               <h3 id="h-model-flexible">Flexible Support</h3>
-              <p className="desc">Additional capacity when you need it.</p>
+              <p className="md-sub">Additional capacity when you need it.</p>
             </div>
             <div className="md-body">
               <div>
@@ -304,7 +307,7 @@ export default function ServicesPage() {
                   This is the model most firms start with, because it asks for the least commitment. There&apos;s no dedicated person to onboard and no ongoing workflow to hand over &mdash; just a defined piece of work, completed and returned.
                 </p>
                 <div className="md-scenario">
-                  <b>A quick illustration:</b> Consider a firm facing a backlog of individual returns before an extension deadline. There&apos;s no ongoing need for the extra capacity once the backlog clears. Flexible Support adds capacity for exactly that window, then steps back &mdash; without the firm carrying a new hire, or an idle resource, forward into the next quarter.
+                  <b>A quick illustration</b>Consider a firm facing a backlog of individual returns before an extension deadline. There&apos;s no ongoing need for the extra capacity once the backlog clears. Flexible Support adds capacity for exactly that window, then steps back &mdash; without the firm carrying a new hire, or an idle resource, forward into the next quarter.
                 </div>
                 <div className="md-notfit">
                   <b>Where this doesn&apos;t fit:</b> if you need someone available every day without advance notice, if the work touches several clients or systems at once and needs constant real-time coordination, or if you want someone to proactively flag issues beyond what was assigned &mdash; those needs point toward Dedicated or Pod instead.
@@ -344,9 +347,9 @@ export default function ServicesPage() {
           {/* MODEL 2 */}
           <article className="md" id="model-dedicated" aria-labelledby="h-model-dedicated" style={{ marginTop: '36px', paddingTop: '36px', borderTop: '1px solid var(--line)' }}>
             <div>
-              <span className="pill">Model 2</span>
+              <span className="md-tag">Model 2</span>
               <h3 id="h-model-dedicated">Dedicated Professional</h3>
-              <p className="desc">A professional who learns your firm.</p>
+              <p className="md-sub">A professional who learns your firm.</p>
             </div>
             <div className="md-body">
               <div>
@@ -357,7 +360,7 @@ export default function ServicesPage() {
                   The value here builds gradually. The first month looks like closer instruction and more back-and-forth. By the third or fourth month, the same person is catching things they would have had to ask about earlier, simply because they&apos;ve seen your files before.
                 </p>
                 <div className="md-scenario">
-                  <b>A quick illustration:</b> Consider a firm with a steady monthly bookkeeping caseload. Early on, the dedicated professional is learning the chart of accounts and asking clarifying questions. A few months in, they recognize the recurring adjusting entries, the client-specific quirks, and the format your firm prefers for handoff &mdash; without being told each time.
+                  <b>A quick illustration</b>Consider a firm with a steady monthly bookkeeping caseload. Early on, the dedicated professional is learning the chart of accounts and asking clarifying questions. A few months in, they recognize the recurring adjusting entries, the client-specific quirks, and the format your firm prefers for handoff &mdash; without being told each time.
                 </div>
                 <div className="md-notfit">
                   <b>Where this doesn&apos;t fit:</b> if your recurring workload doesn&apos;t yet fill one person&apos;s time consistently, a dedicated arrangement can leave capacity going unused in slower months &mdash; Flexible Support is usually the better starting point until volume stabilizes. It also isn&apos;t the right fit if the work genuinely spans more specialties than one person can reasonably cover.
@@ -392,12 +395,12 @@ export default function ServicesPage() {
             </div>
           </article>
 
-          {/* MODEL 3 (High-contrast, fully light-styled matching Model 1 & 2) */}
+          {/* MODEL 3 */}
           <article className="md md--pod" id="model-pod" aria-labelledby="h-model-pod" style={{ marginTop: '36px', paddingTop: '36px', borderTop: '1px solid var(--line)' }}>
             <div>
-              <span className="pill">Model 3</span>
+              <span className="md-tag">Model 3</span>
               <h3 id="h-model-pod">CredTax Pod</h3>
-              <p className="desc">A team built around your workflow.</p>
+              <p className="md-sub">A team built around your workflow.</p>
             </div>
             <div className="md-body">
               <div>
@@ -408,14 +411,14 @@ export default function ServicesPage() {
                   Because a Pod has more than one person on it, it can absorb things a single dedicated professional can&apos;t: one member out doesn&apos;t stop the work, and different pieces of the workflow can run in parallel instead of queueing behind one person.
                 </p>
                 <div className="md-scenario">
-                  <b>A quick illustration:</b> Consider a growing firm whose bookkeeping, tax preparation, and review needs have all scaled together, with more clients wanting the same fast turnaround. A Pod lets each part of that workflow &mdash; reconciliation, preparation, review &mdash; move at once, coordinated internally, rather than routing everything through a single person.
+                  <b>A quick illustration</b>Consider a growing firm whose bookkeeping, tax preparation, and review needs have all scaled together, with more clients wanting the same fast turnaround. A Pod lets each part of that workflow &mdash; reconciliation, preparation, review &mdash; move at once, coordinated internally, rather than routing everything through a single person.
                 </div>
                 <div className="md-notfit">
                   <b>Where this doesn&apos;t fit:</b> if your workflow isn&apos;t yet documented, or is still being defined internally, it&apos;s difficult for any outside team to take on production responsibility for it &mdash; including a Pod. In that case, it&apos;s usually better to start with Flexible or Dedicated Support while the process takes shape, then move to a Pod once the workflow is established enough to hand over.
                 </div>
-                <p className="md-link" style={{ marginTop: '20px' }}>
-                  <Link className="btn btn-secondary" href="/credtax-pod">
-                    See the full CredTax Pod page &rarr;
+                <p className="md-link">
+                  <Link className="link" href="/credtax-pod">
+                    See the full CredTax Pod page
                   </Link>
                 </p>
               </div>
@@ -427,7 +430,7 @@ export default function ServicesPage() {
                     <li>Senior reviewer</li>
                     <li>Accounting or bookkeeping specialist</li>
                     <li>Workflow coordinator</li>
-                    <li>Other specialists, depending on requirements</li>
+                    <li>Other specialists, depending on your requirements</li>
                   </ul>
                 </div>
                 <div className="fact-block">
@@ -457,7 +460,7 @@ export default function ServicesPage() {
       <section className="section" aria-labelledby="h-prog">
         <div className="wrap">
           <div className="sec-head">
-            <span className="pill">What changes as the relationship grows</span>
+            <p className="eyebrow-s">What changes as the relationship grows</p>
             <h2 id="h-prog">The difference isn&apos;t more people. It&apos;s how much of the workflow we hold.</h2>
           </div>
           <ol className="stepper" style={{ ['--n' as string]: 3 }} aria-label="How the relationship progresses">
@@ -493,7 +496,7 @@ export default function ServicesPage() {
       <section className="section section--mist" id="svc-diagnostic" aria-labelledby="h-diag">
         <div className="wrap">
           <div className="sec-head">
-            <span className="pill">A quick way to check</span>
+            <p className="eyebrow-s">A quick way to check</p>
             <h2 id="h-diag">Which model fits your firm?</h2>
           </div>
           <div className="diag">
@@ -526,7 +529,7 @@ export default function ServicesPage() {
       <section className="section" id="svc-comparison" aria-labelledby="h-cmp">
         <div className="wrap">
           <div className="sec-head">
-            <span className="pill">Side by side</span>
+            <p className="eyebrow-s">Side by side</p>
             <h2 id="h-cmp">A closer look at the three models.</h2>
           </div>
           <ServicesComparison />
@@ -537,7 +540,7 @@ export default function ServicesPage() {
       <section className="section section--mist" id="svc-pricing" aria-labelledby="h-price2">
         <div className="wrap">
           <div className="sec-head">
-            <span className="pill">Engagement flexibility</span>
+            <p className="eyebrow-s">Engagement flexibility</p>
             <h2 id="h-price2">How engagements are structured.</h2>
             <p>We don&apos;t publish fixed pricing, because the right structure depends on the work. Here&apos;s how each format generally works.</p>
           </div>
@@ -560,8 +563,8 @@ export default function ServicesPage() {
             </div>
           </div>
           <p style={{ marginTop: '28px' }}>
-            <Link className="btn btn-primary" href="/contact">
-              Discuss Your Workflow &amp; Get Pricing
+            <Link className="btn btn-primary" href="/book-appointment">
+              Book Appointment
             </Link>
           </p>
         </div>
@@ -571,7 +574,7 @@ export default function ServicesPage() {
       <section className="section" aria-labelledby="h-choose">
         <div className="wrap split">
           <div>
-            <span className="pill">Choosing between them</span>
+            <p className="eyebrow-s">Choosing between them</p>
             <h2 id="h-choose" style={{ fontSize: 'clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem)' }}>
               The right model depends on predictability and complexity &mdash; not firm size.
             </h2>
@@ -597,7 +600,7 @@ export default function ServicesPage() {
       <section className="section section--mist" aria-labelledby="h-move">
         <div className="wrap">
           <div className="sec-head">
-            <span className="pill">No pressure, just a pattern</span>
+            <p className="eyebrow-s">No pressure, just a pattern</p>
             <h2 id="h-move">When should you move to the next model?</h2>
             <p>These are signs worth noticing, not a recommendation to change anything before you&apos;re ready.</p>
           </div>
@@ -630,9 +633,7 @@ export default function ServicesPage() {
       <section className="section dark" aria-labelledby="h-depth">
         <div className="wrap split">
           <div>
-            <span className="pill" style={{ color: 'var(--accent-bright)', borderColor: 'var(--accent-bright)' }}>
-              Relationship depth
-            </span>
+            <p className="eyebrow-s">Relationship depth</p>
             <h2 id="h-depth" style={{ fontSize: 'clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem)', color: '#fff', marginTop: '14px' }}>
               The longer we work together, the better we understand your workflow.
             </h2>
@@ -666,7 +667,7 @@ export default function ServicesPage() {
       <section className="section" id="svc-faq" aria-labelledby="h-svcfaq">
         <div className="wrap faq-wrap">
           <div className="sec-head">
-            <span className="pill">Questions firms usually ask</span>
+            <p className="eyebrow-s">Questions firms usually ask</p>
             <h2 id="h-svcfaq">A few things worth clarifying up front.</h2>
           </div>
           <FaqAccordion categories={SERVICES_FAQS} />
@@ -683,7 +684,7 @@ export default function ServicesPage() {
             </p>
             <div className="btn-row">
               <Link className="btn btn-primary" href="/book-appointment">
-                Schedule a Consultation
+                Book Appointment
               </Link>
               <Link className="btn btn-secondary" href="/credtax-pod">
                 Explore the CredTax Pod

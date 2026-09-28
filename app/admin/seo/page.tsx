@@ -15,6 +15,7 @@ interface GeneralSettings {
   phone: string;
   ga_id?: string;
   gsc_tag?: string;
+  favicon_url?: string;
 }
 
 export default function AdminSeoPage() {
@@ -29,11 +30,30 @@ export default function AdminSeoPage() {
     phone: '+91 94959 15993',
     ga_id: '',
     gsc_tag: '',
+    favicon_url: '/favicon.svg',
   });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const handleFaviconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 500 * 1024) {
+      alert('Favicon image must be smaller than 500 KB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (typeof event.target?.result === 'string') {
+        setSettings((prev) => ({ ...prev, favicon_url: event.target?.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     loadSettings();
@@ -114,6 +134,112 @@ export default function AdminSeoPage() {
           <span>SEO settings successfully updated!</span>
         </div>
       )}
+
+      {/* Site Favicon Card */}
+      <div
+        style={{
+          background: '#fff',
+          border: '1px solid var(--line)',
+          borderRadius: '8px',
+          padding: '24px',
+          marginBottom: '28px',
+        }}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '1.25rem', color: 'var(--navy-900)', margin: '0 0 4px' }}>
+            Site Favicon &amp; Browser Icon
+          </h2>
+          <p className="muted" style={{ margin: 0, fontSize: '0.88rem' }}>
+            Upload or configure the favicon icon that appears in browser tabs, bookmarks, and mobile shortcuts.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+          {/* Favicon Preview */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '90px',
+              height: '90px',
+              background: '#F8FAFC',
+              border: '2px dashed var(--line)',
+              borderRadius: '12px',
+              padding: '12px',
+              flexShrink: 0,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={settings.favicon_url || '/favicon.svg'}
+              alt="Site Favicon"
+              style={{
+                width: '38px',
+                height: '38px',
+                objectFit: 'contain',
+                borderRadius: '6px',
+              }}
+            />
+            <span style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '6px' }}>Preview</span>
+          </div>
+
+          <div style={{ flex: 1, minWidth: '260px' }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+              <label
+                className="btn btn-secondary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  padding: '8px 16px',
+                  fontSize: '0.88rem',
+                }}
+              >
+                <span>Upload Favicon File</span>
+                <input
+                  type="file"
+                  accept=".ico,.png,.svg,.jpg,.webp"
+                  onChange={handleFaviconUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+
+              {settings.favicon_url && settings.favicon_url !== '/favicon.svg' && (
+                <button
+                  type="button"
+                  onClick={() => setSettings((prev) => ({ ...prev, favicon_url: '/favicon.svg' }))}
+                  className="btn"
+                  style={{
+                    background: '#F1F5F9',
+                    color: 'var(--navy-900)',
+                    padding: '8px 16px',
+                    fontSize: '0.88rem',
+                    borderRadius: '6px',
+                    border: '1px solid var(--line)',
+                  }}
+                >
+                  Reset to Default
+                </button>
+              )}
+            </div>
+
+            <div className="field" style={{ margin: 0 }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Favicon URL or File Path</label>
+              <input
+                type="text"
+                value={settings.favicon_url || ''}
+                onChange={(e) => setSettings({ ...settings, favicon_url: e.target.value })}
+                placeholder="/favicon.svg or https://..."
+                style={{ fontSize: '0.88rem' }}
+              />
+              <span className="hint">Supports SVG, ICO, PNG, or WebP. Leave blank or use /favicon.svg for default.</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Google Search Result Preview */}
       <div

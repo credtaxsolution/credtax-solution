@@ -272,10 +272,17 @@ h4{font-family:var(--sans);font-size:1rem;font-weight:650;letter-spacing:0;line-
 .stepper.stepper--dark .step-n{color:var(--accent-bright)}
 
 /* Familiarity ledger (home, dark) */
-.ledger{list-style:none;border-top:1px solid var(--line-dark)}
-.ledger li{padding:14px 0;border-bottom:1px solid var(--line-dark);display:flex;justify-content:space-between;gap:16px;color:#fff;font-weight:500}
-.ledger li span{color:var(--on-dark-muted);font-weight:400;font-size:.95rem}
-.ledger-title{font-weight:650;color:#fff;margin-bottom:14px}
+.ledger{list-style:none;border-top:1px solid var(--line-dark);margin:0;padding:0}
+.ledger li{padding:14px 0;border-bottom:1px solid var(--line-dark);display:grid;grid-template-columns:minmax(190px, 240px) 1fr;column-gap:28px;row-gap:4px;align-items:baseline;color:#fff;font-weight:500}
+.ledger-key{color:#fff;font-weight:600;font-size:1rem}
+.ledger li span, .ledger-val{color:var(--on-dark-muted);font-weight:400;font-size:.95rem}
+.ledger-title{font-weight:650;color:#fff;margin-bottom:16px;text-wrap:balance}
+
+@media (max-width:640px){
+  .ledger li{display:flex;flex-direction:column;gap:3px;padding:12px 0}
+  .ledger-key{font-size:.98rem}
+  .ledger li span, .ledger-val{font-size:.92rem;line-height:1.45}
+}
 
 /* Built around your firm */
 .five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--line)}

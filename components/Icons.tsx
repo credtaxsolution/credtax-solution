@@ -48,9 +48,17 @@ export function IconSprite() {
   );
 }
 
-export function Icon({ name, className = "icon" }: { name: string; className?: string }) {
+export function Icon({
+  name,
+  className = "icon",
+  style,
+}: {
+  name: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   return (
-    <svg className={className} aria-hidden="true">
+    <svg className={className} style={style} aria-hidden="true">
       <use href={`#i-${name}`} />
     </svg>
   );
