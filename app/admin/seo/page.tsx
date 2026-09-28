@@ -49,7 +49,11 @@ export default function AdminSeoPage() {
     const reader = new FileReader();
     reader.onload = (event) => {
       if (typeof event.target?.result === 'string') {
-        setSettings((prev) => ({ ...prev, favicon_url: event.target?.result as string }));
+        const url = event.target.result as string;
+        setSettings((prev) => ({ ...prev, favicon_url: url }));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('credtax:favicon-updated', { detail: url }));
+        }
       }
     };
     reader.readAsDataURL(file);
@@ -95,6 +99,13 @@ export default function AdminSeoPage() {
 
       if (error) throw error;
       setSavedSuccess(true);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('credtax:favicon-updated', {
+            detail: settings.favicon_url ? `/api/favicon?t=${Date.now()}` : '/api/favicon',
+          })
+        );
+      }
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
       console.error('Error saving settings:', err);
@@ -210,7 +221,12 @@ export default function AdminSeoPage() {
               {settings.favicon_url && settings.favicon_url !== '/favicon.svg' && (
                 <button
                   type="button"
-                  onClick={() => setSettings((prev) => ({ ...prev, favicon_url: '/favicon.svg' }))}
+                  onClick={() => {
+                    setSettings((prev) => ({ ...prev, favicon_url: '/favicon.svg' }));
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('credtax:favicon-updated', { detail: '/favicon.svg' }));
+                    }
+                  }}
                   className="btn"
                   style={{
                     background: '#F1F5F9',

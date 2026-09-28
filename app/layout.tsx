@@ -10,22 +10,10 @@ const inter = Inter({
   variable: '--font-sans',
 });
 
-async function getSiteFavicon(): Promise<string> {
-  try {
-    const supabase = createPublicClient();
-    const { data } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'general')
-      .single();
+import { DynamicFavicon } from '@/components/DynamicFavicon';
 
-    if (data?.value?.favicon_url) {
-      return data.value.favicon_url;
-    }
-  } catch (err) {
-    console.error('Error fetching favicon settings:', err);
-  }
-  return '/favicon.svg';
+async function getSiteFavicon(): Promise<string> {
+  return '/api/favicon';
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -137,6 +125,7 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <IconSprite />
+        <DynamicFavicon />
         {children}
       </body>
     </html>
