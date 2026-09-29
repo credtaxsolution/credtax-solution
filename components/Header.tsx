@@ -27,7 +27,7 @@ export function Header() {
   const navLinks = [
     { href: '/services', label: 'Services' },
     { href: '/credtax-pod', label: 'CredTax Pod' },
-    { href: '/succession-continuity', label: 'Succession & Continuity' },
+    // { href: '/succession-continuity', label: 'Succession & Continuity' },
     { href: '/how-we-work', label: 'How We Work' },
     { href: '/why-credtax', label: 'Why CredTax' },
     { href: '/about', label: 'About' },

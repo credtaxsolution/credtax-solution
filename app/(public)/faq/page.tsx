@@ -123,13 +123,13 @@ export default function FaqPage() {
                 Explore Services &rarr;
               </Link>
             </div>
-            <div className="rule-top">
+            {/* <div className="rule-top">
               <h3>Questions about succession</h3>
               <p>Learn about ownership, retirement, operational handover, and transition phases.</p>
               <Link className="link" href="/succession-continuity">
                 Explore Continuity &rarr;
               </Link>
-            </div>
+            </div> */}
           </div>
 
           <p style={{ marginTop: '36px', textAlign: 'center' }}>

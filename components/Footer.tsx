@@ -39,7 +39,7 @@ export function Footer() {
             <h2>Explore</h2>
             <ul>
               <li><Link href="/credtax-pod">CredTax Pod</Link></li>
-              <li><Link href="/succession-continuity">Succession &amp; Continuity</Link></li>
+              {/* <li><Link href="/succession-continuity">Succession &amp; Continuity</Link></li> */}
               <li><Link href="/how-we-work">How We Work</Link></li>
               <li><Link href="/why-credtax">Why CredTax</Link></li>
             </ul>

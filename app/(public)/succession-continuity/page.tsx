@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Icon } from '@/components/Icons';
 import { RadialDiagram } from '@/components/RadialDiagram';
 import { SuccessionTransitionTabs } from '@/components/SuccessionTransitionTabs';
@@ -63,6 +64,8 @@ const SUCCESSION_FAQS = [
 ];
 
 export default function SuccessionPage() {
+  notFound();
+
   return (
     <div className="page" data-page="succession">
       {/* HERO */}

@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '',
     '/services',
     '/credtax-pod',
-    '/succession-continuity',
+    // '/succession-continuity',
     '/how-we-work',
     '/why-credtax',
     '/about',
