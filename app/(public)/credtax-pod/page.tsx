@@ -518,7 +518,7 @@ export default function CredTaxPodPage() {
             rate card or a fixed headcount price.
           </p>
           <div style={{ marginTop: '24px' }}>
-            <Link className="btn btn-primary" href="/contact">
+            <Link className="btn btn-primary" href="/book-appointment">
               Build My Pod
             </Link>
           </div>

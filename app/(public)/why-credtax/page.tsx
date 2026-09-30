@@ -119,7 +119,7 @@ export default function WhyCredTaxPage() {
               CredTax is based in India, and we say so plainly. Where the team sits is not the point. What matters to a CPA firm is whether the work fits its systems, meets its standards and keeps moving when someone is out.
             </p>
             <p className="muted">
-              That is why CredTax is organized around capability, specialization, workflow integration, quality and continuity, and why the conversation starts with your workflow rather than an arbitrary rate card.
+              CredTax is organized around capability, specialization, workflow integration, quality and continuity, and why the conversation starts with your workflow rather than an arbitrary rate card.
             </p>
             <p style={{ marginTop: '24px' }}>
               <Link className="btn btn-primary" href="/book-appointment">

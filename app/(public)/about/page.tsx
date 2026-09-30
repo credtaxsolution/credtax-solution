@@ -73,6 +73,9 @@ export default function AboutPage() {
               <div>
                 <h3>Raijo Jose</h3>
                 <p className="role">Partner — Client Services, Sales &amp; Administration</p>
+                <p style={{ margin: '8px 0 14px', fontSize: '0.94rem', lineHeight: '1.55', color: 'var(--navy-900)' }}>
+                  Raijo has 4+ years of experience in US taxation and accounting, with in-depth knowledge of Form 1040 preparation. At CredTax, he also leads client services, virtual assistance, and workflow coordination for CPA firms.
+                </p>
                 <h4>Focus areas</h4>
                 <ul className="ticks">
                   <li>Client relationships &amp; onboarding</li>
@@ -94,6 +97,9 @@ export default function AboutPage() {
               <div>
                 <h3>Nithin PR</h3>
                 <p className="role">Partner — Tax &amp; Accounting Operations</p>
+                <p style={{ margin: '8px 0 14px', fontSize: '0.94rem', lineHeight: '1.55', color: 'var(--navy-900)' }}>
+                  Nithin has 4+ years of experience in US taxation and accounting, including Form 1040 and business return preparation and review. He leads CredTax&apos;s tax and accounting operations, with a focus on quality control and dependable delivery.
+                </p>
                 <h4>Focus areas</h4>
                 <ul className="ticks">
                   <li>US &amp; Canadian tax workflows</li>
@@ -113,7 +119,7 @@ export default function AboutPage() {
         <div className="wrap split">
           <div>
             <span className="pill" style={{ color: 'var(--accent-bright)', borderColor: 'var(--accent-bright)' }}>Headquarters</span>
-            <h2 style={{ color: '#fff' }}>India-Based. Built for International CPA Firms.</h2>
+            <h2 style={{ color: '#fff' }}>Based on Kerala,India. Built for International CPA firms</h2>
           </div>
           <div>
             <p className="lead" style={{ color: 'var(--on-dark-muted)' }}>
