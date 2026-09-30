@@ -112,7 +112,7 @@ export default function WhyCredTaxPage() {
         <div className="wrap split">
           <div>
             <span className="pill">Global Delivery</span>
-            <h2>India-Based. Built for International CPA Firms.</h2>
+            <h2>Based in Kerala, India. Built for International CPA Firms</h2>
           </div>
           <div>
             <p className="lead muted">

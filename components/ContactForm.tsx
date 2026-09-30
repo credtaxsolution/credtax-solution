@@ -367,6 +367,7 @@ export function ContactForm() {
             <option value="Accounting">Accounting / Month-end</option>
             <option value="Workflow / Admin">Workflow / Admin Coordination</option>
             <option value="CredTax Pod">CredTax Pod (Full Function)</option>
+            <option value="Virtual Assistant">Virtual Assistant</option>
             <option value="Succession">Succession Partnership</option>
             <option value="Multiple">Multiple Areas</option>
           </select>

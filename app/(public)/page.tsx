@@ -241,7 +241,7 @@ export default async function HomePage() {
             </article>
             <article className="rule-top">
               <Icon name="flow" className="ico-lg" />
-              <h3>CPA Firm Workflow Support</h3>
+              <h3>CPA Firm Workflow Support & Virtual Assistant</h3>
               <ul className="ticks">
                 <li>Document collection &amp; tracking</li>
                 <li>Client follow-up</li>

@@ -19,7 +19,9 @@ export default function AboutPage() {
             CredTax was created to support CPA firms with the capacity they need to operate and grow without having to build every function internally.
           </p>
           <p className="lead" style={{ marginTop: '12px' }}>
-            We are an India-based offshore support partner focused on tax, accounting and CPA-firm workflow operations. CredTax is the brand; the legal entity behind it is CredTax Solution LLP.
+           CredTax is based in Kochi, Kerala, India. Kerala has long been recognized
+for strong educational outcomes and high literacy. We built our team here
+to support detail-focused, English-language professional work.
           </p>
         </div>
       </section>

@@ -63,7 +63,7 @@ export function Header() {
 
         <div className="header-cta">
           <Link className="btn btn-secondary btn-sm" href="/contact">
-            Contact
+            Contact Us
           </Link>
           <Link className="btn btn-primary btn-sm" href="/book-appointment">
             Book Appointment

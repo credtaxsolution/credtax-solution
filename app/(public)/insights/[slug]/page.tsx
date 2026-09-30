@@ -8,6 +8,10 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 0;
+
 export async function generateStaticParams() {
   try {
     const supabase = createPublicClient();
@@ -89,8 +93,8 @@ export default async function BlogPostPage({ params }: Props) {
     },
   };
 
-  // Convert markdown-style sections into clean HTML/JSX
-  const paragraphs = blog.content.split('\n\n');
+  const isHtml = /<[a-z][\s\S]*>/i.test(blog.content || '');
+  const paragraphs = isHtml ? [] : (blog.content || '').split('\n\n');
 
   return (
     <div className="page" data-page="article">
@@ -118,46 +122,73 @@ export default async function BlogPostPage({ params }: Props) {
       </section>
 
       <div className="wrap" style={{ maxWidth: '760px', marginInline: 'auto', paddingBlock: 'clamp(48px, 6vw, 80px)' }}>
+        {blog.cover_image && (
+          <div
+            style={{
+              marginBottom: '40px',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+              background: 'var(--mist)',
+            }}
+          >
+            <img
+              src={blog.cover_image}
+              alt={blog.title}
+              style={{ width: '100%', maxHeight: '460px', objectFit: 'cover', display: 'block' }}
+            />
+          </div>
+        )}
+
         <article style={{ fontSize: '1.1rem', lineHeight: '1.8', color: 'var(--ink)' }}>
-          {paragraphs.map((para: string, idx: number) => {
-            if (para.startsWith('### ')) {
-              return (
-                <h3
-                  key={idx}
-                  style={{
-                    fontFamily: 'var(--serif)',
-                    fontSize: '1.6rem',
-                    fontWeight: 600,
-                    margin: '40px 0 16px 0',
-                    color: 'var(--navy-900)',
-                  }}
-                >
-                  {para.replace('### ', '')}
-                </h3>
-              );
-            }
-            if (para.startsWith('## ')) {
-              return (
-                <h2
-                  key={idx}
-                  style={{
-                    fontFamily: 'var(--serif)',
-                    fontSize: '1.9rem',
-                    fontWeight: 600,
-                    margin: '48px 0 20px 0',
-                    color: 'var(--navy-900)',
-                  }}
-                >
-                  {para.replace('## ', '')}
-                </h2>
-              );
-            }
-            return (
-              <p key={idx} style={{ marginBottom: '1.5em' }}>
-                {para}
-              </p>
-            );
-          })}
+          {isHtml ? (
+            <div
+              className="article-body"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+            />
+          ) : (
+            <div className="article-body">
+              {paragraphs.map((para: string, idx: number) => {
+                if (para.startsWith('### ')) {
+                  return (
+                    <h3
+                      key={idx}
+                      style={{
+                        fontFamily: 'var(--serif)',
+                        fontSize: '1.6rem',
+                        fontWeight: 600,
+                        margin: '40px 0 16px 0',
+                        color: 'var(--navy-900)',
+                      }}
+                    >
+                      {para.replace('### ', '')}
+                    </h3>
+                  );
+                }
+                if (para.startsWith('## ')) {
+                  return (
+                    <h2
+                      key={idx}
+                      style={{
+                        fontFamily: 'var(--serif)',
+                        fontSize: '1.9rem',
+                        fontWeight: 600,
+                        margin: '48px 0 20px 0',
+                        color: 'var(--navy-900)',
+                      }}
+                    >
+                      {para.replace('## ', '')}
+                    </h2>
+                  );
+                }
+                return (
+                  <p key={idx} style={{ marginBottom: '1.5em' }}>
+                    {para}
+                  </p>
+                );
+              })}
+            </div>
+          )}
         </article>
 
         <div style={{ marginTop: '48px', paddingTop: '28px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -218,7 +218,7 @@ export default function ServicesPage() {
           <section className="svc-block" id="svc-workflow" aria-labelledby="h-svc-workflow">
             <div>
               <Icon name="flow" className="ico-lg" />
-              <h2 id="h-svc-workflow">CPA Firm Workflow Support</h2>
+              <h2 id="h-svc-workflow">CPA Firm Workflow Support & Virtual Assistant</h2>
               <p className="intro">Client communication support, inbox and workflow management, document follow-up, scheduling, and day-to-day coordination inside your existing tools.</p>
               <ul className="delivered" aria-label="Available through">
                 <li>Flexible Support</li>
@@ -239,6 +239,7 @@ export default function ServicesPage() {
                     <li>Scheduling</li>
                     <li>Workflow coordination</li>
                     <li>Administrative support</li>
+                    <li>Invoice Tracking</li>
                   </ul>
                 </div>
                 <div>

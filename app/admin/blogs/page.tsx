@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, Edit2, Trash2, ExternalLink, Check, X, FileText } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Edit2, Trash2, ExternalLink, X, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 interface Blog {
   id: string;
@@ -13,6 +13,7 @@ interface Blog {
   category: string;
   excerpt: string;
   content: string;
+  cover_image: string | null;
   read_time: string;
   is_published: boolean;
   published_at: string | null;
@@ -32,10 +33,14 @@ export default function AdminBlogsPage() {
   const [formCategory, setFormCategory] = useState('Tax operations');
   const [formExcerpt, setFormExcerpt] = useState('');
   const [formContent, setFormContent] = useState('');
+  const [formCoverImage, setFormCoverImage] = useState('');
   const [formReadTime, setFormReadTime] = useState('5 min read');
   const [formPublished, setFormPublished] = useState(true);
   const [formMetaTitle, setFormMetaTitle] = useState('');
   const [formMetaDesc, setFormMetaDesc] = useState('');
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadBlogs();
@@ -67,6 +72,46 @@ export default function AdminBlogsPage() {
       .replace(/^-+|-+$/g, '');
   };
 
+  const uploadImageToSupabase = async (file: File): Promise<string> => {
+    const supabase = createClient();
+    const fileExt = file.name.split('.').pop() || 'png';
+    const cleanName = file.name
+      .replace(/\.[^/.]+$/, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-');
+    const fileName = `${Date.now()}-${cleanName}.${fileExt}`;
+    const filePath = `articles/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('blog-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('blog-images').getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingCover(true);
+      const url = await uploadImageToSupabase(file);
+      setFormCoverImage(url);
+    } catch (err: any) {
+      console.error('Failed to upload cover image:', err);
+      alert('Failed to upload image: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = '';
+    }
+  };
+
   const openCreateModal = () => {
     setEditingItem(null);
     setFormTitle('');
@@ -74,6 +119,7 @@ export default function AdminBlogsPage() {
     setFormCategory('Tax operations');
     setFormExcerpt('');
     setFormContent('');
+    setFormCoverImage('');
     setFormReadTime('5 min read');
     setFormPublished(true);
     setFormMetaTitle('');
@@ -88,6 +134,7 @@ export default function AdminBlogsPage() {
     setFormCategory(item.category);
     setFormExcerpt(item.excerpt);
     setFormContent(item.content);
+    setFormCoverImage(item.cover_image || '');
     setFormReadTime(item.read_time);
     setFormPublished(item.is_published);
     setFormMetaTitle(item.meta_title || '');
@@ -105,6 +152,7 @@ export default function AdminBlogsPage() {
       category: formCategory,
       excerpt: formExcerpt,
       content: formContent,
+      cover_image: formCoverImage || null,
       read_time: formReadTime,
       is_published: formPublished,
       published_at: formPublished ? new Date().toISOString() : null,
@@ -165,11 +213,12 @@ export default function AdminBlogsPage() {
       </div>
 
       <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '8px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '750px' }}>
           <thead>
             <tr style={{ background: 'var(--mist)', borderBottom: '1px solid var(--line)', color: 'var(--navy-900)', fontSize: '0.85rem' }}>
               <th style={{ padding: '14px 18px' }}>TITLE &amp; SLUG</th>
               <th style={{ padding: '14px 18px' }}>CATEGORY</th>
+              <th style={{ padding: '14px 18px' }}>COVER</th>
               <th style={{ padding: '14px 18px' }}>READ TIME</th>
               <th style={{ padding: '14px 18px' }}>STATUS</th>
               <th style={{ padding: '14px 18px', textAlign: 'right' }}>ACTIONS</th>
@@ -178,13 +227,13 @@ export default function AdminBlogsPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
                   Loading articles...
                 </td>
               </tr>
             ) : blogs.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
                   No articles yet. Click &quot;New Article&quot; to publish your first post!
                 </td>
               </tr>
@@ -199,6 +248,18 @@ export default function AdminBlogsPage() {
                     <span style={{ fontSize: '0.78rem', fontWeight: 600, padding: '3px 8px', borderRadius: '99px', background: 'var(--mist-2)', color: 'var(--navy-900)' }}>
                       {b.category}
                     </span>
+                  </td>
+                  <td style={{ padding: '14px 18px' }}>
+                    {b.cover_image ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={b.cover_image}
+                        alt="Cover"
+                        style={{ width: '48px', height: '32px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--line)' }}
+                      />
+                    ) : (
+                      <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>None</span>
+                    )}
                   </td>
                   <td style={{ padding: '14px 18px', color: 'var(--muted)', fontSize: '0.86rem' }}>
                     {b.read_time}
@@ -271,17 +332,18 @@ export default function AdminBlogsPage() {
           <div
             style={{
               width: '100%',
-              maxWidth: '720px',
-              maxHeight: '90vh',
+              maxWidth: '820px',
+              maxHeight: '92vh',
               overflowY: 'auto',
               background: '#fff',
-              borderRadius: '8px',
+              borderRadius: '10px',
               padding: '32px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.4rem', margin: 0 }}>
+              <h2 style={{ fontSize: '1.4rem', margin: 0, color: 'var(--navy-900)' }}>
                 {editingItem ? 'Edit Article' : 'Create Article'}
               </h2>
               <button
@@ -331,7 +393,80 @@ export default function AdminBlogsPage() {
                 </div>
               </div>
 
-              <div className="field" style={{ marginBottom: '14px' }}>
+              {/* Cover / Featured Image Upload */}
+              <div className="field" style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '0.88rem', fontWeight: 600 }}>Featured Cover Image</label>
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleCoverUpload}
+                />
+                
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '6px' }}>
+                  {formCoverImage ? (
+                    <div style={{ position: 'relative', width: '140px', height: '80px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--line)', flexShrink: 0 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={formCoverImage}
+                        alt="Cover Preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <button
+                        type="button"
+                        title="Remove cover image"
+                        onClick={() => setFormCoverImage('')}
+                        style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          background: 'rgba(0,0,0,0.6)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          display: 'grid',
+                          placeItems: 'center',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <div style={{ flex: 1 }}>
+                    <button
+                      type="button"
+                      disabled={uploadingCover}
+                      onClick={() => coverInputRef.current?.click()}
+                      className="btn btn-secondary"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '7px 14px',
+                        fontSize: '0.86rem',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      {uploadingCover ? <Loader2 size={15} className="spin" /> : <Upload size={15} />}
+                      <span>{formCoverImage ? 'Change Image' : 'Upload Cover Image'}</span>
+                    </button>
+                    <input
+                      type="text"
+                      value={formCoverImage}
+                      onChange={(e) => setFormCoverImage(e.target.value)}
+                      placeholder="Or paste image URL (https://...)"
+                      style={{ fontSize: '0.82rem', padding: '6px 10px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="field" style={{ marginBottom: '16px' }}>
                 <label style={{ fontSize: '0.88rem' }}>Excerpt (Summary) *</label>
                 <textarea
                   rows={2}
@@ -342,15 +477,19 @@ export default function AdminBlogsPage() {
                 />
               </div>
 
-              <div className="field" style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '0.88rem' }}>Article Content (Markdown supported) *</label>
-                <textarea
-                  rows={8}
-                  required
+              {/* Rich Text Editor for Article Content */}
+              <div className="field" style={{ marginBottom: '18px' }}>
+                <label style={{ fontSize: '0.88rem', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Article Content (Rich Text) *</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--muted)', fontWeight: 400 }}>
+                    Formatting toolbar &amp; inline image uploads supported
+                  </span>
+                </label>
+                <RichTextEditor
                   value={formContent}
-                  onChange={(e) => setFormContent(e.target.value)}
-                  placeholder="Write your article paragraphs here. Use ### for subheadings..."
-                  style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}
+                  onChange={setFormContent}
+                  onImageUpload={uploadImageToSupabase}
+                  placeholder="Compose your article with headings, lists, quotes, and inline images..."
                 />
               </div>
 

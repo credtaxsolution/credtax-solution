@@ -901,7 +901,7 @@ export function BookingEngine() {
                       'US Tax Preparation',
                       'Tax Review & QC',
                       'Bookkeeping',
-                      'Virtual Assistance',
+                      'Virtual Assistance/Workflow Coordinator',
                       'CredTax Pod',
                       'Succession Partnership',
                     ].map((svc) => (
