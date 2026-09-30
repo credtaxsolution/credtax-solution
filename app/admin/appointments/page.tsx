@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { Calendar as CalendarIcon, List, Search, Filter, Phone, Mail, Clock, FileText, Check, X, CalendarCheck } from 'lucide-react';
+import { Calendar as CalendarIcon, List, Search, Filter, Phone, Mail, Clock, FileText, Check, X, CalendarCheck, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Appointment {
@@ -97,14 +97,36 @@ export default function AdminAppointmentsPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <a
+            href="https://calendly.com/app/scheduled_events/user/me"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <ExternalLink size={15} />
+            <span>Calendly Events</span>
+          </a>
+
+          <a
+            href="https://calendar.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <ExternalLink size={15} />
+            <span>Google Calendar</span>
+          </a>
+
           <Link
             href="/admin/availability"
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', padding: '8px 16px' }}
+            className="btn btn-primary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <CalendarCheck size={16} />
-            <span>Manage Available Dates &amp; Times &rarr;</span>
+            <CalendarCheck size={15} />
+            <span>Availability Settings</span>
           </Link>
 
           {/* View mode toggle */}

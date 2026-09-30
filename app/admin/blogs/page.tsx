@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, Edit2, Trash2, ExternalLink, X, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, X, Image as ImageIcon, Upload, Loader2, Pin } from 'lucide-react';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
 interface Blog {
@@ -19,6 +19,7 @@ interface Blog {
   published_at: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  is_pinned?: boolean;
   created_at: string;
 }
 
@@ -36,6 +37,7 @@ export default function AdminBlogsPage() {
   const [formCoverImage, setFormCoverImage] = useState('');
   const [formReadTime, setFormReadTime] = useState('5 min read');
   const [formPublished, setFormPublished] = useState(true);
+  const [formPinned, setFormPinned] = useState(false);
   const [formMetaTitle, setFormMetaTitle] = useState('');
   const [formMetaDesc, setFormMetaDesc] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -122,6 +124,7 @@ export default function AdminBlogsPage() {
     setFormCoverImage('');
     setFormReadTime('5 min read');
     setFormPublished(true);
+    setFormPinned(false);
     setFormMetaTitle('');
     setFormMetaDesc('');
     setShowModal(true);
@@ -137,6 +140,7 @@ export default function AdminBlogsPage() {
     setFormCoverImage(item.cover_image || '');
     setFormReadTime(item.read_time);
     setFormPublished(item.is_published);
+    setFormPinned(Boolean(item.is_pinned));
     setFormMetaTitle(item.meta_title || '');
     setFormMetaDesc(item.meta_description || '');
     setShowModal(true);
@@ -145,6 +149,15 @@ export default function AdminBlogsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const supabase = createClient();
+
+    // If this article is pinned, unpin all others first
+    if (formPinned) {
+      if (editingItem) {
+        await supabase.from('blogs').update({ is_pinned: false }).neq('id', editingItem.id);
+      } else {
+        await supabase.from('blogs').update({ is_pinned: false });
+      }
+    }
 
     const payload = {
       title: formTitle,
@@ -158,6 +171,7 @@ export default function AdminBlogsPage() {
       published_at: formPublished ? new Date().toISOString() : null,
       meta_title: formMetaTitle || formTitle,
       meta_description: formMetaDesc || formExcerpt,
+      is_pinned: formPinned,
       updated_at: new Date().toISOString(),
     };
 
@@ -168,6 +182,19 @@ export default function AdminBlogsPage() {
     }
 
     setShowModal(false);
+    loadBlogs();
+  };
+
+  const togglePin = async (id: string, current: boolean) => {
+    const supabase = createClient();
+    if (!current) {
+      // Unpin all other articles first, then pin this one
+      await supabase.from('blogs').update({ is_pinned: false }).neq('id', id);
+      await supabase.from('blogs').update({ is_pinned: true }).eq('id', id);
+    } else {
+      // Unpin this article
+      await supabase.from('blogs').update({ is_pinned: false }).eq('id', id);
+    }
     loadBlogs();
   };
 
@@ -241,7 +268,27 @@ export default function AdminBlogsPage() {
               blogs.map((b) => (
                 <tr key={b.id} style={{ borderBottom: '1px solid var(--line)', fontSize: '0.92rem' }}>
                   <td style={{ padding: '14px 18px' }}>
-                    <strong style={{ color: 'var(--navy-900)', display: 'block' }}>{b.title}</strong>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <strong style={{ color: 'var(--navy-900)' }}>{b.title}</strong>
+                      {b.is_pinned && (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '99px',
+                            background: '#FEF3C7',
+                            color: '#92400E',
+                            border: '1px solid #FCD34D',
+                          }}
+                        >
+                          <Pin size={11} fill="#92400E" /> Pinned Guide
+                        </span>
+                      )}
+                    </div>
                     <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>/insights/{b.slug}</span>
                   </td>
                   <td style={{ padding: '14px 18px' }}>
@@ -281,7 +328,29 @@ export default function AdminBlogsPage() {
                     </span>
                   </td>
                   <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '8px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        type="button"
+                        aria-label={b.is_pinned ? 'Unpin article' : 'Pin article'}
+                        title={b.is_pinned ? 'Unpin this guide' : 'Pin this guide (sticks in all other articles)'}
+                        onClick={() => togglePin(b.id, Boolean(b.is_pinned))}
+                        style={{
+                          padding: '6px 8px',
+                          background: b.is_pinned ? '#FEF3C7' : 'none',
+                          border: b.is_pinned ? '1px solid #FCD34D' : '1px solid var(--line)',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: b.is_pinned ? '#92400E' : 'var(--muted)',
+                        }}
+                      >
+                        <Pin size={13} fill={b.is_pinned ? '#92400E' : 'none'} color={b.is_pinned ? '#92400E' : 'currentColor'} />
+                        <span>{b.is_pinned ? 'Pinned' : 'Pin'}</span>
+                      </button>
                       <Link
                         href={`/insights/${b.slug}`}
                         target="_blank"
@@ -518,6 +587,19 @@ export default function AdminBlogsPage() {
                     style={{ fontSize: '0.88rem', padding: '6px' }}
                   />
                 </div>
+              </div>
+
+              <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', padding: '12px 16px', borderRadius: '6px', marginBottom: '20px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', color: '#92400E', fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={formPinned}
+                    onChange={(e) => setFormPinned(e.target.checked)}
+                    style={{ width: '17px', height: '17px', accentColor: '#D97706' }}
+                  />
+                  <Pin size={15} fill={formPinned ? '#92400E' : 'none'} />
+                  <span>Pin as Featured Guide (sticks across all other article pages)</span>
+                </label>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>

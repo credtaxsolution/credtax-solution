@@ -1395,5 +1395,41 @@ a.post-card:hover{border-color:var(--navy-900)}
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
+/* Pinned Article Sticky Sidebar */
+.pinned-sidebar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 96px;
+  align-self: start;
+}
+
+.pinned-card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(24, 57, 65, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.pinned-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 8px 30px rgba(24, 57, 65, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .article-layout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+  .pinned-sidebar {
+    position: static !important;
+    top: auto !important;
+    margin-top: 40px;
+    max-width: 760px;
+  }
+}
+
+
 
 
