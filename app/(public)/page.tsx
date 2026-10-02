@@ -195,7 +195,7 @@ export default async function HomePage() {
           <div className="grid-2">
             <article className="rule-top">
               <Icon name="tax" className="ico-lg" />
-              <h3>US Tax</h3>
+              <h3>US Tax Preparation</h3>
               <ul className="ticks">
                 <li>Individual returns (Form 1040)</li>
                 <li>Business returns (Form 1065, 1120, 1120-S)</li>
