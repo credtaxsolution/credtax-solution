@@ -98,7 +98,7 @@ export default function ServicesPage() {
           <section className="svc-block" id="svc-tax" aria-labelledby="h-svc-tax">
             <div>
               <Icon name="tax" className="ico-lg" />
-              <h2 id="h-svc-tax">US Tax</h2>
+              <h2 id="h-svc-tax">US Tax Preparation</h2>
               <p className="intro">Individual and business tax return preparation support, tax research, planning support, and organized supporting workpapers.</p>
               <ul className="delivered" aria-label="Available through">
                 <li>Flexible Support</li>
