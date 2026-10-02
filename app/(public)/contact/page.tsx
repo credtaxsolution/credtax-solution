@@ -71,7 +71,7 @@ export default function ContactPage() {
               <dt>Email</dt>
               <dd>
                 <a className="link" href="mailto:support@credtaxsolution.com">
-                  support@credtaxsolution.com
+                  example@gmail.com
                 </a>
               </dd>
               <dt>Phone / WhatsApp</dt>
