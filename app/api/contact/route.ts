@@ -44,9 +44,7 @@ export async function POST(request: Request) {
           message: message?.trim() || null,
           status: 'new',
         },
-      ])
-      .select()
-      .single();
+      ]);
 
     if (error) {
       console.error('Database insert error in contact form:', error);
