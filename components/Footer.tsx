@@ -64,7 +64,7 @@ export function Footer() {
                 <a href="mailto:support@credtaxsolution.com">support@credtaxsolution.com</a>
               </li>
               <li>
-                <a href="tel:+919495915993">+91 94959 15993</a>
+                <a href="tel:+919562652842">+91 95626 52842</a>
               </li>
               <li style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
                 CREDTAX SOLUTION LLP, Menacheriveedu, Ward 6 Door No.459, Thattampady, Karumalloor, Paravoor, Kochi, Kerala, IN 683511
