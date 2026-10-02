@@ -77,7 +77,7 @@ export default function ContactPage() {
               <dt>Phone / WhatsApp</dt>
               <dd>
                 <a className="link" href="tel:+919562652842">
-                  +91 94959 15993
+                  +91 956265 2842
                 </a>
               </dd>
               <dt>Direct Scheduling</dt>
