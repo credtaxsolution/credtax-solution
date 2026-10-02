@@ -70,13 +70,13 @@ export default function ContactPage() {
             <dl className="contact-details">
               <dt>Email</dt>
               <dd>
-                <a className="link" href="mailto:prnithin6@gmail.com">
-                  prnithin6@gmail.com
+                <a className="link" href="mailto:support@credtaxsolution.com">
+                  support@credtaxsolution.com
                 </a>
               </dd>
               <dt>Phone / WhatsApp</dt>
               <dd>
-                <a className="link" href="tel:+919495915993">
+                <a className="link" href="tel:+919562652842">
                   +91 94959 15993
                 </a>
               </dd>
