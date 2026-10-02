@@ -61,7 +61,7 @@ export function Footer() {
             <h2>Contact</h2>
             <ul>
               <li>
-                <a href="mailto:prnithin6@gmail.com">support@credtaxsolution.com</a>
+                <a href="mailto:support@credtaxsolution.com">support@credtaxsolution.com</a>
               </li>
               <li>
                 <a href="tel:+919495915993">+91 94959 15993</a>
