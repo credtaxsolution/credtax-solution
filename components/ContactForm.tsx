@@ -35,10 +35,10 @@ export function ContactForm() {
         if (value.trim().length < 2) return 'Firm name must be at least 2 characters.';
         return '';
       case 'email':
-        if (!value.trim()) return 'Work email address is required.';
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value.trim())) return 'Please enter a valid work email (e.g. name@firm.com).';
-        return '';
+    if (!value.trim()) return 'Email address is required.';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value.trim())) return 'Please enter a valid email address (e.g. name@gmail.com).';
+    return '';
       case 'website':
         if (value.trim()) {
           const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
@@ -277,7 +277,7 @@ export function ContactForm() {
         {/* Email Field */}
         <div className="field">
           <label htmlFor="f-email">
-            Work email <span className="req">*</span>
+            Email <span className="req">*</span>
           </label>
           <input
             id="f-email"
