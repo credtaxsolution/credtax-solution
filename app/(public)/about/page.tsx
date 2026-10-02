@@ -133,7 +133,7 @@ to support detail-focused, English-language professional work.
                 Menacheriveedu, Ward 6 Door No.459, Thattampady, Karumalloor, Paravoor, Kochi, Kerala, IN 683511
               </p>
               <p style={{ color: 'var(--on-dark-muted)', marginTop: '8px' }}>
-                Email: <a href="mailto:prnithin6@gmail.com" style={{ color: '#fff', textDecoration: 'underline' }}>prnithin6@gmail.com</a> | Phone: <a href="tel:+919495915993" style={{ color: '#fff', textDecoration: 'underline' }}>+91 94959 15993</a>
+                Email: <a href="mailto:support@credtaxsolution.com" style={{ color: '#fff', textDecoration: 'underline' }}>support@credtaxsolution.com</a> | Phone: <a href="tel:+919495915993" style={{ color: '#fff', textDecoration: 'underline' }}>+91 94959 15993</a>
               </p>
               <p style={{ color: 'var(--accent-bright)', marginTop: '12px', fontSize: '0.9rem' }}>
                 Serving CPA and accounting practices primarily across the United States and Canada.
